@@ -156,7 +156,7 @@
             font-size: 0.85rem;
         }
 
-        /* Estilos de Impressão para o Relatório */
+        /* Estilos de Impressão */
         @media print {
             body { background: white; padding: 0; }
             .grid { grid-template-columns: 1fr; }
@@ -203,19 +203,22 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="paletes">Quantidade de Paletes</label>
+                    <label for="paletes">Quantidade de Paletes na Viagem</label>
                     <input type="number" id="paletes" min="1" value="1" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="caixas">Quantidade de Caixas (Total)</label>
-                    <input type="number" id="caixas" min="1" placeholder="Ex: 60" required>
+                    <label for="caixas_por_palete">Quantidade de Caixas por Palete</label>
+                    <input type="number" id="caixas_por_palete" min="1" placeholder="Ex: 60" required>
                 </div>
 
                 <div class="info-calculo">
-                    <strong>Conferência Matemática do Sistema:</strong><br>
-                    • <b>90x90:</b> Caixas × 3 peças × 0.81m² = Metragem total.<br>
-                    • <b>32x60:</b> Caixas × 2.30m² = Metragem total.
+                    <strong>Como a conta é feita agora:</strong><br>
+                    1. O sistema calcula o total de caixas: <br>
+                    &nbsp;&nbsp;&nbsp;<i>(Paletes × Caixas por Palete)</i><br>
+                    2. Aplica a metragem da bitola:<br>
+                    &nbsp;&nbsp;&nbsp;• <b>90x90:</b> Caixas Totais × 3 peças × 0.81m²<br>
+                    &nbsp;&nbsp;&nbsp;• <b>32x60:</b> Caixas Totais × 2.30m²
                 </div>
 
                 <button type="submit">Lançar Viagem</button>
@@ -250,7 +253,7 @@
                             <th>Destino</th>
                             <th>Bitola</th>
                             <th>Paletes</th>
-                            <th>Caixas</th>
+                            <th>Caixas Totais</th>
                             <th>Total m²</th>
                         </tr>
                     </thead>
@@ -266,7 +269,7 @@
 </div>
 
 <script>
-    // Recupera do LocalStorage para não perder dados ao atualizar
+    // Recupera dados salvos no navegador para não perder no F5
     let viagens = JSON.parse(localStorage.getItem('viagens_expedicao')) || [];
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -281,17 +284,18 @@
         const destino = document.getElementById('destino').value;
         const bitola = document.getElementById('bitola').value;
         const paletes = parseInt(document.getElementById('paletes').value);
-        const caixas = parseInt(document.getElementById('caixas').value);
+        const caixasPorPalete = parseInt(document.getElementById('caixas_por_palete').value);
 
-        // LÓGICA DE CÁLCULO CORRIGIDA
+        // NOVA LÓGICA DE CONTABILIZAÇÃO
+        const caixasTotais = paletes * caixasPorPalete;
         let totalMetrosViagem = 0;
         
         if (bitola === "90x90") {
-            // Caixas * 3 peças * 0.81m² por peça
-            totalMetrosViagem = caixas * 3 * 0.81;
+            // Caixas Totais * 3 peças * 0.81m² por peça
+            totalMetrosViagem = caixasTotais * 3 * 0.81;
         } else if (bitola === "32x60") {
-            // Caixas * 2.30m² (já é o total da caixa)
-            totalMetrosViagem = caixas * 2.30;
+            // Caixas Totais * 2.30m² total por caixa
+            totalMetrosViagem = caixasTotais * 2.30;
         }
 
         const novaViagem = {
@@ -300,7 +304,7 @@
             destino,
             bitola,
             paletes,
-            caixas,
+            caixas: caixasTotais, // Guarda o total final de caixas levadas
             metros: totalMetrosViagem
         };
 
@@ -312,8 +316,8 @@
         atualizarTabela();
         atualizarResumo();
 
-        // Limpa campos numéricos
-        document.getElementById('caixas').value = '';
+        // Reseta os campos de números para a próxima viagem
+        document.getElementById('caixas_por_palete').value = '';
         document.getElementById('paletes').value = '1';
     });
 
