@@ -197,8 +197,8 @@
                 <div class="form-group">
                     <label for="bitola">Bitola (Formato)</label>
                     <select id="bitola" required>
-                        <option value="90x90">90x90 (Caixa: 3 pçs / 2.43 m² total)</option>
-                        <option value="32x60">32x60 (Caixa: 12 pçs / 2.30 m² total)</option>
+                        <option value="90x90">90x90 (3 pçs por caixa | 0.81m² por peça)</option>
+                        <option value="32x60">32x60 (12 pçs por caixa | 2.30m² total por caixa)</option>
                     </select>
                 </div>
 
@@ -213,9 +213,9 @@
                 </div>
 
                 <div class="info-calculo">
-                    <strong>Regra de Cálculo:</strong><br>
-                    • 90x90 = 3 peças por caixa (0.81m² por peça = 2.43m² por caixa)<br>
-                    • 32x60 = 12 peças por caixa (2.30m² total por caixa)
+                    <strong>Conferência Matemática do Sistema:</strong><br>
+                    • <b>90x90:</b> Caixas × 3 peças × 0.81m² = Metragem total.<br>
+                    • <b>32x60:</b> Caixas × 2.30m² = Metragem total.
                 </div>
 
                 <button type="submit">Lançar Viagem</button>
@@ -266,15 +266,9 @@
 </div>
 
 <script>
-    // [MEMÓRIA] Busca dados antigos salvos no navegador. Se não achar, começa do zero.
+    // Recupera do LocalStorage para não perder dados ao atualizar
     let viagens = JSON.parse(localStorage.getItem('viagens_expedicao')) || [];
 
-    const METROS_POR_CAIXA = {
-        "90x90": 3 * 0.81, 
-        "32x60": 2.30
-    };
-
-    // [MEMÓRIA] Quando a página carregar (ou atualizar), redesenha os dados salvos na tela
     document.addEventListener("DOMContentLoaded", function() {
         atualizarTabela();
         atualizarResumo();
@@ -289,8 +283,16 @@
         const paletes = parseInt(document.getElementById('paletes').value);
         const caixas = parseInt(document.getElementById('caixas').value);
 
-        const fatorMetro = METROS_POR_CAIXA[bitola];
-        const totalMetrosViagem = caixas * fatorMetro;
+        // LÓGICA DE CÁLCULO CORRIGIDA
+        let totalMetrosViagem = 0;
+        
+        if (bitola === "90x90") {
+            // Caixas * 3 peças * 0.81m² por peça
+            totalMetrosViagem = caixas * 3 * 0.81;
+        } else if (bitola === "32x60") {
+            // Caixas * 2.30m² (já é o total da caixa)
+            totalMetrosViagem = caixas * 2.30;
+        }
 
         const novaViagem = {
             id: viagens.length + 1,
@@ -304,12 +306,13 @@
 
         viagens.push(novaViagem);
         
-        // [MEMÓRIA] Grava a nova lista atualizada permanentemente no navegador
+        // Salva no navegador
         localStorage.setItem('viagens_expedicao', JSON.stringify(viagens));
 
         atualizarTabela();
         atualizarResumo();
 
+        // Limpa campos numéricos
         document.getElementById('caixas').value = '';
         document.getElementById('paletes').value = '1';
     });
@@ -343,11 +346,10 @@
         document.getElementById('resumo-metros').innerText = totalMetros.toFixed(2) + " m²";
     }
 
-    // [MEMÓRIA] Botão para apagar a memória quando o dia acabar e iniciar outro turno
     function limparDados() {
         if(confirm("Tem certeza que deseja apagar os registros atuais? Isso zerará o relatório do dia.")) {
             viagens = [];
-            localStorage.removeItem('viagens_expedicao'); // Apaga do navegador
+            localStorage.removeItem('viagens_expedicao');
             atualizarTabela();
             atualizarResumo();
         }
