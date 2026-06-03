@@ -9,6 +9,7 @@
             --primary: #2b6cb0;
             --primary-hover: #1a365d;
             --success: #2f855a;
+            --danger: #e53e3e;
             --background: #f7fafc;
             --card-bg: #ffffff;
             --text: #2d3748;
@@ -100,8 +101,11 @@
 
         button:hover { background-color: var(--primary-hover); }
         
-        .btn-success { background-color: var(--success); margin-top: 10px; }
+        .btn-success { background-color: var(--success); margin-top: 15px; }
         .btn-success:hover { background-color: #22543d; }
+
+        .btn-danger { background-color: #cbd5e0; color: #4a5568; margin-top: 10px; font-size: 0.9rem; padding: 8px; }
+        .btn-danger:hover { background-color: var(--danger); color: white; }
 
         .table-container {
             overflow-x: auto;
@@ -124,7 +128,7 @@
 
         .resumo-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -150,6 +154,14 @@
             border-radius: 5px;
             margin-bottom: 15px;
             font-size: 0.85rem;
+        }
+
+        /* Estilos de Impressão para o Relatório */
+        @media print {
+            body { background: white; padding: 0; }
+            .grid { grid-template-columns: 1fr; }
+            .card:first-child, button, .info-calculo { display: none !important; }
+            .card { border: none; box-shadow: none; }
         }
     </style>
 </head>
@@ -223,8 +235,8 @@
                     <span id="resumo-paletes">0</span>
                 </div>
                 <div class="resumo-item">
-                    <p>Total Enviado (m²)</p>
-                    <span id="resumo-metros">0.00</span>
+                    <p>Total Enviado</p>
+                    <span id="resumo-metros">0.00 m²</span>
                 </div>
             </div>
 
@@ -248,37 +260,38 @@
             </div>
             
             <button class="btn-success" onclick="window.print()">Imprimir / Gerar PDF do Relatório</button>
+            <button class="btn-danger" onclick="limparDados()">Limpar Todos os Dados do Dia</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Array para armazenar as viagens temporariamente na sessão
-    let viagens = [];
+    // [MEMÓRIA] Busca dados antigos salvos no navegador. Se não achar, começa do zero.
+    let viagens = JSON.parse(localStorage.getItem('viagens_expedicao')) || [];
 
-    // Fatores de multiplicação por caixa fornecidos
-    // 90x90: 3 peças por caixa onde CADA peça tem 0.81m² -> 3 * 0.81 = 2.43m² por caixa.
-    // 32x60: 12 peças por caixa dando um total de 2.30m² por caixa.
     const METROS_POR_CAIXA = {
         "90x90": 3 * 0.81, 
         "32x60": 2.30
     };
 
+    // [MEMÓRIA] Quando a página carregar (ou atualizar), redesenha os dados salvos na tela
+    document.addEventListener("DOMContentLoaded", function() {
+        atualizarTabela();
+        atualizarResumo();
+    });
+
     document.getElementById('form-expedicao').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        // Captura de valores do formulário
         const origem = document.getElementById('origem').value;
         const destino = document.getElementById('destino').value;
         const bitola = document.getElementById('bitola').value;
         const paletes = parseInt(document.getElementById('paletes').value);
         const caixas = parseInt(document.getElementById('caixas').value);
 
-        // Cálculo dos metros quadrados
         const fatorMetro = METROS_POR_CAIXA[bitola];
         const totalMetrosViagem = caixas * fatorMetro;
 
-        // Objeto da nova viagem
         const novaViagem = {
             id: viagens.length + 1,
             origem,
@@ -289,19 +302,21 @@
             metros: totalMetrosViagem
         };
 
-        // Salva e atualiza a tela
         viagens.push(novaViagem);
+        
+        // [MEMÓRIA] Grava a nova lista atualizada permanentemente no navegador
+        localStorage.setItem('viagens_expedicao', JSON.stringify(viagens));
+
         atualizarTabela();
         atualizarResumo();
 
-        // Reseta apenas os campos numéricos para agilizar o próximo envio
         document.getElementById('caixas').value = '';
         document.getElementById('paletes').value = '1';
     });
 
     function atualizarTabela() {
         const tbody = document.querySelector('#tabela-viagens tbody');
-        tbody.innerHTML = ''; // Limpa a tabela
+        tbody.innerHTML = ''; 
 
         viagens.forEach(v => {
             const tr = document.createElement('tr');
@@ -326,6 +341,16 @@
         document.getElementById('resumo-viagens').innerText = totalViagens;
         document.getElementById('resumo-paletes').innerText = totalPaletes;
         document.getElementById('resumo-metros').innerText = totalMetros.toFixed(2) + " m²";
+    }
+
+    // [MEMÓRIA] Botão para apagar a memória quando o dia acabar e iniciar outro turno
+    function limparDados() {
+        if(confirm("Tem certeza que deseja apagar os registros atuais? Isso zerará o relatório do dia.")) {
+            viagens = [];
+            localStorage.removeItem('viagens_expedicao'); // Apaga do navegador
+            atualizarTabela();
+            atualizarResumo();
+        }
     }
 </script>
 
