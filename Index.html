@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Expedição e Logística</title>
+    <style>
+        :root {
+            --primary: #2b6cb0;
+            --primary-hover: #1a365d;
+            --success: #2f855a;
+            --background: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        h2 { color: var(--primary); margin-bottom: 15px; font-size: 1.4rem; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .grid { grid-template-columns: 1fr 2fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: var(--primary-hover); }
+        
+        .btn-success { background-color: var(--success); margin-top: 10px; }
+        .btn-success:hover { background-color: #22543d; }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { background-color: #edf2f7; color: var(--text); }
+
+        .resumo-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .resumo-item {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .resumo-item span {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .info-calculo {
+            background: #ebf8ff;
+            color: #2b6cb0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Controle de Expedição Diária</h1>
+        <p>Registro de viagens, bitolas e cubagem automática</p>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Registrar Viagem</h2>
+            <form id="form-expedicao">
+                <div class="form-group">
+                    <label for="origem">Local de Origem</label>
+                    <select id="origem" required>
+                        <option value="Retífica">Retífica</option>
+                        <option value="Classificação">Classificação</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="destino">Local de Envio (Destino)</label>
+                    <select id="destino" required>
+                        <option value="CD">CD</option>
+                        <option value="Refratário">Refratário</option>
+                        <option value="Pátio">Pátio</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bitola">Bitola (Formato)</label>
+                    <select id="bitola" required>
+                        <option value="90x90">90x90 (Caixa: 3 pçs / 2.43 m² total)</option>
+                        <option value="32x60">32x60 (Caixa: 12 pçs / 2.30 m² total)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="paletes">Quantidade de Paletes</label>
+                    <input type="number" id="paletes" min="1" value="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="caixas">Quantidade de Caixas (Total)</label>
+                    <input type="number" id="caixas" min="1" placeholder="Ex: 60" required>
+                </div>
+
+                <div class="info-calculo">
+                    <strong>Regra de Cálculo:</strong><br>
+                    • 90x90 = 3 peças por caixa (0.81m² por peça = 2.43m² por caixa)<br>
+                    • 32x60 = 12 peças por caixa (2.30m² total por caixa)
+                </div>
+
+                <button type="submit">Lançar Viagem</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Relatório Consolidado do Dia</h2>
+            
+            <div class="resumo-cards">
+                <div class="resumo-item">
+                    <p>Total de Viagens</p>
+                    <span id="resumo-viagens">0</span>
+                </div>
+                <div class="resumo-item">
+                    <p>Total de Paletes</p>
+                    <span id="resumo-paletes">0</span>
+                </div>
+                <div class="resumo-item">
+                    <p>Total Enviado (m²)</p>
+                    <span id="resumo-metros">0.00</span>
+                </div>
+            </div>
+
+            <h2>Histórico de Viagens</h2>
+            <div class="table-container">
+                <table id="tabela-viagens">
+                    <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Origem</th>
+                            <th>Destino</th>
+                            <th>Bitola</th>
+                            <th>Paletes</th>
+                            <th>Caixas</th>
+                            <th>Total m²</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+            
+            <button class="btn-success" onclick="window.print()">Imprimir / Gerar PDF do Relatório</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Array para armazenar as viagens temporariamente na sessão
+    let viagens = [];
+
+    // Fatores de multiplicação por caixa fornecidos
+    // 90x90: 3 peças por caixa onde CADA peça tem 0.81m² -> 3 * 0.81 = 2.43m² por caixa.
+    // 32x60: 12 peças por caixa dando um total de 2.30m² por caixa.
+    const METROS_POR_CAIXA = {
+        "90x90": 3 * 0.81, 
+        "32x60": 2.30
+    };
+
+    document.getElementById('form-expedicao').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Captura de valores do formulário
+        const origem = document.getElementById('origem').value;
+        const destino = document.getElementById('destino').value;
+        const bitola = document.getElementById('bitola').value;
+        const paletes = parseInt(document.getElementById('paletes').value);
+        const caixas = parseInt(document.getElementById('caixas').value);
+
+        // Cálculo dos metros quadrados
+        const fatorMetro = METROS_POR_CAIXA[bitola];
+        const totalMetrosViagem = caixas * fatorMetro;
+
+        // Objeto da nova viagem
+        const novaViagem = {
+            id: viagens.length + 1,
+            origem,
+            destino,
+            bitola,
+            paletes,
+            caixas,
+            metros: totalMetrosViagem
+        };
+
+        // Salva e atualiza a tela
+        viagens.push(novaViagem);
+        atualizarTabela();
+        atualizarResumo();
+
+        // Reseta apenas os campos numéricos para agilizar o próximo envio
+        document.getElementById('caixas').value = '';
+        document.getElementById('paletes').value = '1';
+    });
+
+    function atualizarTabela() {
+        const tbody = document.querySelector('#tabela-viagens tbody');
+        tbody.innerHTML = ''; // Limpa a tabela
+
+        viagens.forEach(v => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>#${v.id}</strong></td>
+                <td>${v.origem}</td>
+                <td>${v.destino}</td>
+                <td><span style="background: #edf2f7; padding: 2px 6px; border-radius:4px;">${v.bitola}</span></td>
+                <td>${v.paletes}</td>
+                <td>${v.caixas}</td>
+                <td><strong>${v.metros.toFixed(2)} m²</strong></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function atualizarResumo() {
+        const totalViagens = viagens.length;
+        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
+        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
+
+        document.getElementById('resumo-viagens').innerText = totalViagens;
+        document.getElementById('resumo-paletes').innerText = totalPaletes;
+        document.getElementById('resumo-metros').innerText = totalMetros.toFixed(2) + " m²";
+    }
+</script>
+
+</body>
+</html>
