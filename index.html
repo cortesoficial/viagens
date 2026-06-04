@@ -10,6 +10,7 @@
             --primary-hover: #1a365d;
             --success: #2f855a;
             --danger: #e53e3e;
+            --warning: #dd6b20;
             --background: #f7fafc;
             --card-bg: #ffffff;
             --text: #2d3748;
@@ -30,7 +31,7 @@
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -44,14 +45,37 @@
         h1 { color: var(--primary); margin-bottom: 5px; }
         h2 { color: var(--primary); margin-bottom: 15px; font-size: 1.4rem; }
 
+        /* Tela de Login */
+        #tela-login {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card h2 { text-align: center; margin-bottom: 20px; }
+
+        /* Painel Principal */
+        #painel-principal { display: none; }
+
         .grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 20px;
         }
 
-        @media (min-width: 768px) {
-            .grid { grid-template-columns: 1fr 2fr; }
+        @media (min-width: 992px) {
+            .grid { grid-template-columns: 1fr 2.5fr; }
         }
 
         .card {
@@ -60,11 +84,10 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             border: 1px solid var(--border);
+            margin-bottom: 20px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
+        .form-group { margin-bottom: 15px; }
 
         label {
             display: block;
@@ -101,11 +124,13 @@
 
         button:hover { background-color: var(--primary-hover); }
         
-        .btn-success { background-color: var(--success); margin-top: 15px; }
+        .btn-success { background-color: var(--success); }
         .btn-success:hover { background-color: #22543d; }
 
         .btn-danger { background-color: #cbd5e0; color: #4a5568; margin-top: 10px; font-size: 0.9rem; padding: 8px; }
         .btn-danger:hover { background-color: var(--danger); color: white; }
+
+        .btn-logout { background-color: #718096; max-width: 150px; float: right; margin-top: -50px; padding: 8px; font-size: 0.9rem;}
 
         .table-container {
             overflow-x: auto;
@@ -116,11 +141,11 @@
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         th, td {
-            padding: 12px;
+            padding: 10px;
             border-bottom: 1px solid var(--border);
         }
 
@@ -128,7 +153,7 @@
 
         .resumo-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -142,25 +167,49 @@
 
         .resumo-item span {
             display: block;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: var(--primary);
         }
 
-        .info-calculo {
-            background: #ebf8ff;
-            color: #2b6cb0;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+        .badge-transito { background: #feebc8; color: #c05621; }
+        .badge-concluido { background: #c6f6d5; color: #22543d; }
+
+        .btn-acao-tabela {
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            width: auto;
         }
 
-        /* Estilos de Impressão */
+        .erro-msg {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: none;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .lista-usuarios {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
         @media print {
             body { background: white; padding: 0; }
             .grid { grid-template-columns: 1fr; }
-            .card:first-child, button, .info-calculo { display: none !important; }
+            .card:first-child, button, .btn-logout, #card-usuarios, .btn-acao-tabela { display: none !important; }
             .card { border: none; box-shadow: none; }
         }
     </style>
@@ -168,115 +217,189 @@
 <body>
 
 <div class="container">
-    <header>
-        <h1>Controle de Expedição Diária</h1>
-        <p>Registro de viagens, bitolas e cubagem automática</p>
-    </header>
-
-    <div class="grid">
-        <div class="card">
-            <h2>Registrar Viagem</h2>
-            <form id="form-expedicao">
+    
+    <div id="tela-login">
+        <div class="login-card">
+            <h2>Expedição - Login</h2>
+            <form id="form-login">
                 <div class="form-group">
-                    <label for="origem">Local de Origem</label>
-                    <select id="origem" required>
-                        <option value="Retífica">Retífica</option>
-                        <option value="Classificação">Classificação</option>
-                    </select>
+                    <label for="usuario_login">Usuário</label>
+                    <input type="text" id="usuario_login" placeholder="Ex: sm623199" required autocomplete="off">
                 </div>
-
                 <div class="form-group">
-                    <label for="destino">Local de Envio (Destino)</label>
-                    <select id="destino" required>
-                        <option value="CD">CD</option>
-                        <option value="Refratário">Refratário</option>
-                        <option value="Pátio">Pátio</option>
-                    </select>
+                    <label for="senha_login">Senha</label>
+                    <input type="password" id="senha_login" placeholder="Sua senha" required>
+                    <div id="erro-login" class="erro-msg">Usuário ou Senha incorretos!</div>
                 </div>
-
-                <div class="form-group">
-                    <label for="bitola">Bitola (Formato)</label>
-                    <select id="bitola" required>
-                        <option value="90x90">90x90 (3 pçs por caixa | 0.81m² por peça)</option>
-                        <option value="32x60">32x60 (12 pçs por caixa | 2.30m² total por caixa)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="paletes">Quantidade de Paletes na Viagem</label>
-                    <input type="number" id="paletes" min="1" value="1" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="caixas_por_palete">Quantidade de Caixas por Palete</label>
-                    <input type="number" id="caixas_por_palete" min="1" placeholder="Ex: 60" required>
-                </div>
-
-                <div class="info-calculo">
-                    <strong>Como a conta é feita agora:</strong><br>
-                    1. O sistema calcula o total de caixas: <br>
-                    &nbsp;&nbsp;&nbsp;<i>(Paletes × Caixas por Palete)</i><br>
-                    2. Aplica a metragem da bitola:<br>
-                    &nbsp;&nbsp;&nbsp;• <b>90x90:</b> Caixas Totais × 3 peças × 0.81m²<br>
-                    &nbsp;&nbsp;&nbsp;• <b>32x60:</b> Caixas Totais × 2.30m²
-                </div>
-
-                <button type="submit">Lançar Viagem</button>
+                <button type="submit">Entrar no Sistema</button>
             </form>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>Relatório Consolidado do Dia</h2>
-            
-            <div class="resumo-cards">
-                <div class="resumo-item">
-                    <p>Total de Viagens</p>
-                    <span id="resumo-viagens">0</span>
+    <div id="painel-principal">
+        <header>
+            <h1>Controle de Expedição Diária</h1>
+            <p>Registro de viagens com Monitoramento de Tempos e Cubagem</p>
+            <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+        </header>
+
+        <div class="grid">
+            <div>
+                <div class="card">
+                    <h2>Registrar Saída da Carreta</h2>
+                    <form id="form-expedicao">
+                        <div class="form-group">
+                            <label for="origem">Local de Origem</label>
+                            <select id="origem" required>
+                                <option value="Retífica">Retífica</option>
+                                <option value="Classificação">Classificação</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="destino">Local de Envio (Destino)</label>
+                            <select id="destino" required>
+                                <option value="CD">CD</option>
+                                <option value="Refratário">Refratário</option>
+                                <option value="Pátio">Pátio</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bitola">Bitola (Formato)</label>
+                            <select id="bitola" required>
+                                <option value="90x90">90x90 (3 pçs por caixa | 0.81m² pç)</option>
+                                <option value="32x60">32x60 (12 pçs por caixa | 2.30m² cx)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="paletes">Quantidade de Paletes</label>
+                            <input type="number" id="paletes" min="1" value="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="caixas_por_palete">Caixas por Palete</label>
+                            <input type="number" id="caixas_por_palete" min="1" placeholder="Ex: 60" required>
+                        </div>
+
+                        <button type="submit" class="btn-success" style="background-color: var(--warning)">🚀 Registrar Saída (Iniciar Tempo)</button>
+                    </form>
                 </div>
-                <div class="resumo-item">
-                    <p>Total de Paletes</p>
-                    <span id="resumo-paletes">0</span>
-                </div>
-                <div class="resumo-item">
-                    <p>Total Enviado</p>
-                    <span id="resumo-metros">0.00 m²</span>
+
+                <div class="card" id="card-usuarios">
+                    <h2>Gerenciar Logins</h2>
+                    <form id="form-novo-usuario">
+                        <div class="form-group">
+                            <input type="text" id="novo_usuario" placeholder="Novo usuário" required autocomplete="off" style="margin-bottom: 8px;">
+                            <input type="password" id="nova_senha" placeholder="Senha do novo usuário" required>
+                        </div>
+                        <button type="submit" style="background-color: #4a5568; padding: 8px; font-size: 0.9rem;">+ Adicionar Login</button>
+                    </form>
+                    <div class="lista-usuarios" id="lista-usuarios-cadastrados"></div>
                 </div>
             </div>
 
-            <h2>Histórico de Viagens</h2>
-            <div class="table-container">
-                <table id="tabela-viagens">
-                    <thead>
-                        <tr>
-                            <th>Nº</th>
-                            <th>Origem</th>
-                            <th>Destino</th>
-                            <th>Bitola</th>
-                            <th>Paletes</th>
-                            <th>Caixas Totais</th>
-                            <th>Total m²</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
+            <div class="card">
+                <h2>Relatório Consolidado do Dia</h2>
+                
+                <div class="resumo-cards">
+                    <div class="resumo-item">
+                        <p>Total Viagens</p>
+                        <span id="resumo-viagens">0</span>
+                    </div>
+                    <div class="resumo-item">
+                        <p>Total Paletes</p>
+                        <span id="resumo-paletes">0</span>
+                    </div>
+                    <div class="resumo-item">
+                        <p>Total Enviado</p>
+                        <span id="resumo-metros" style="font-size:1.3rem;">0.00 m²</span>
+                    </div>
+                </div>
+
+                <h2>Monitoramento de Frotas e Histórico</h2>
+                <div class="table-container">
+                    <table id="tabela-viagens">
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Rota</th>
+                                <th>Bitola</th>
+                                <th>Paletes/Cx</th>
+                                <th>Total m²</th>
+                                <th>Saída</th>
+                                <th>Retorno</th>
+                                <th>Tempo Total</th>
+                                <th>Ação / Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+                
+                <button class="btn-success" onclick="window.print()" style="margin-top:20px;">Imprimir / Gerar PDF do Relatório</button>
+                <button class="btn-danger" onclick="limparDados()">Limpar Todos os Dados do Dia</button>
             </div>
-            
-            <button class="btn-success" onclick="window.print()">Imprimir / Gerar PDF do Relatório</button>
-            <button class="btn-danger" onclick="limparDados()">Limpar Todos os Dados do Dia</button>
         </div>
     </div>
 </div>
 
 <script>
-    // Recupera dados salvos no navegador para não perder no F5
+    // Banco de Logins com Senha (Padrão inicial configurado conforme solicitado)
+    let bancoUsuarios = JSON.parse(localStorage.getItem('usuarios_frotas')) || [
+        { user: "sm623199", senha: "sergio123" }
+    ];
+    let usuarioLogado = sessionStorage.getItem('usuario_logado') || null;
+
+    // Histórico das viagens do dia
     let viagens = JSON.parse(localStorage.getItem('viagens_expedicao')) || [];
 
     document.addEventListener("DOMContentLoaded", function() {
-        atualizarTabela();
-        atualizarResumo();
+        if (usuarioLogado) { mostrarPainelPrincipal(); } else { mostrarTelaLogin(); }
+        atualizarListaUsuariosVisual();
     });
 
+    // Processamento de Login
+    document.getElementById('form-login').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const userIn = document.getElementById('usuario_login').value.trim();
+        const senhaIn = document.getElementById('senha_login').value;
+
+        const contaValida = bancoUsuarios.find(u => u.user === userIn && u.senha === senhaIn);
+
+        if (contaValida) {
+            sessionStorage.setItem('usuario_logado', userIn);
+            usuarioLogado = userIn;
+            document.getElementById('erro-login').style.display = 'none';
+            document.getElementById('usuario_login').value = '';
+            document.getElementById('senha_login').value = '';
+            mostrarPainelPrincipal();
+        } else {
+            document.getElementById('erro-login').style.display = 'block';
+        }
+    });
+
+    // Cadastro de novos logins
+    document.getElementById('form-novo-usuario').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nu = document.getElementById('novo_usuario').value.trim();
+        const ns = document.getElementById('nova_senha').value;
+
+        if (nu && ns && !bancoUsuarios.some(u => u.user === nu)) {
+            bancoUsuarios.push({ user: nu, senha: ns });
+            localStorage.setItem('usuarios_frotas', JSON.stringify(bancoUsuarios));
+            atualizarListaUsuariosVisual();
+            alert(`Acesso para "${nu}" cadastrado!`);
+            document.getElementById('novo_usuario').value = '';
+            document.getElementById('nova_senha').value = '';
+        } else {
+            alert("Usuário já existente ou inválido.");
+        }
+    });
+
+    // Lançamento de Nova Viagem (Saída)
     document.getElementById('form-expedicao').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -286,17 +409,17 @@
         const paletes = parseInt(document.getElementById('paletes').value);
         const caixasPorPalete = parseInt(document.getElementById('caixas_por_palete').value);
 
-        // NOVA LÓGICA DE CONTABILIZAÇÃO
         const caixasTotais = paletes * caixasPorPalete;
         let totalMetrosViagem = 0;
         
         if (bitola === "90x90") {
-            // Caixas Totais * 3 peças * 0.81m² por peça
             totalMetrosViagem = caixasTotais * 3 * 0.81;
         } else if (bitola === "32x60") {
-            // Caixas Totais * 2.30m² total por caixa
             totalMetrosViagem = caixasTotais * 2.30;
         }
+
+        const agora = new Date();
+        const horaSaidaTexto = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
         const novaViagem = {
             id: viagens.length + 1,
@@ -304,22 +427,46 @@
             destino,
             bitola,
             paletes,
-            caixas: caixasTotais, // Guarda o total final de caixas levadas
-            metros: totalMetrosViagem
+            caixas: caixasTotais,
+            metros: totalMetrosViagem,
+            timestampSaida: agora.getTime(), // Salva milissegundos para cálculo exato
+            horaSaida: horaSaidaTexto,
+            horaRetorno: "---",
+            duracao: "---",
+            status: "Em Trânsito"
         };
 
         viagens.push(novaViagem);
-        
-        // Salva no navegador
-        localStorage.setItem('viagens_expedicao', JSON.stringify(viagens));
-
+        salvarDados();
         atualizarTabela();
         atualizarResumo();
 
-        // Reseta os campos de números para a próxima viagem
         document.getElementById('caixas_por_palete').value = '';
         document.getElementById('paletes').value = '1';
     });
+
+    // Registrar o Retorno da Carreta
+    function registrarRetorno(idViagem) {
+        const viagem = viagens.find(v => v.id === idViagem);
+        if (viagem && viagem.status === "Em Trânsito") {
+            const agora = new Date();
+            const timestampRetorno = agora.getTime();
+            
+            // Cálculos da diferença de tempo
+            const diferencaMs = timestampRetorno - viagem.timestampSaida;
+            const totalMinutos = Math.floor(diferencaMs / 1000 / 60);
+            const horas = Math.floor(totalMinutos / 60);
+            const minutos = totalMinutos % 60;
+
+            viagem.horaRetorno = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            viagem.duracao = horas > 0 ? `${horas}h ${minutos}min` : `${minutos} min`;
+            viagem.status = "Concluído";
+
+            salvarDados();
+            atualizarTabela();
+            atualizarResumo();
+        }
+    }
 
     function atualizarTabela() {
         const tbody = document.querySelector('#tabela-viagens tbody');
@@ -327,14 +474,22 @@
 
         viagens.forEach(v => {
             const tr = document.createElement('tr');
+            
+            // Botão de ação ou status concluído
+            let acaoCelular = v.status === "Em Trânsito" 
+                ? `<button class="btn-success btn-acao-tabela" onclick="registrarRetorno(${v.id})">📥 Chegada</button>`
+                : `<span class="badge badge-concluido">✔ Concluído</span>`;
+
             tr.innerHTML = `
                 <td><strong>#${v.id}</strong></td>
-                <td>${v.origem}</td>
-                <td>${v.destino}</td>
-                <td><span style="background: #edf2f7; padding: 2px 6px; border-radius:4px;">${v.bitola}</span></td>
-                <td>${v.paletes}</td>
-                <td>${v.caixas}</td>
+                <td>${v.origem} ➔ ${v.destino}</td>
+                <td><span style="background: #edf2f7; padding: 2px 4px; border-radius:4px;">${v.bitola}</span></td>
+                <td>${v.paletes} Pl / ${v.caixas} Cx</td>
                 <td><strong>${v.metros.toFixed(2)} m²</strong></td>
+                <td>⏱ ${v.horaSaida}</td>
+                <td>⏱ ${v.horaRetorno}</td>
+                <td>color:var(--success);<strong>${v.duracao}</strong></td>
+                <td>${acaoCelular}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -350,8 +505,36 @@
         document.getElementById('resumo-metros').innerText = totalMetros.toFixed(2) + " m²";
     }
 
+    function salvarDados() {
+        localStorage.setItem('viagens_expedicao', JSON.stringify(viagens));
+    }
+
+    function mostrarPainelPrincipal() {
+        document.getElementById('tela-login').style.display = 'none';
+        document.getElementById('painel-principal').style.display = 'block';
+        atualizarTabela();
+        atualizarResumo();
+    }
+
+    function mostrarTelaLogin() {
+        document.getElementById('tela-login').style.display = 'flex';
+        document.getElementById('painel-principal').style.display = 'none';
+    }
+
+    function fazerLogout() {
+        sessionStorage.removeItem('usuario_logado');
+        usuarioLogado = null;
+        mostrarTelaLogin();
+    }
+
+    function atualizarListaUsuariosVisual() {
+        const listaDiv = document.getElementById('lista-usuarios-cadastrados');
+        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
+        bancoUsuarios.forEach(u => { listaDiv.innerHTML += `• ${u.user}<br>`; });
+    }
+
     function limparDados() {
-        if(confirm("Tem certeza que deseja apagar os registros atuais? Isso zerará o relatório do dia.")) {
+        if(confirm("Deseja mesmo resetar as frotas e relatórios do dia?")) {
             viagens = [];
             localStorage.removeItem('viagens_expedicao');
             atualizarTabela();
