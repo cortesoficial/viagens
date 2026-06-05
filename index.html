@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Expedição e Logística</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         :root {
             --primary: #2b6cb0;
@@ -34,6 +36,553 @@
             max-width: 1200px;
             margin: 0 auto;
         }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        h2 { color: var(--primary); margin-bottom: 15px; font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+
+        #tela-login {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card h2 { text-align: center; margin-bottom: 20px; border: none; }
+
+        #painel-principal { display: none; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 992px) {
+            .grid { grid-template-columns: 1fr 2fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .form-group { margin-bottom: 12px; }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-saida { background-color: var(--warning); }
+        .btn-saida:hover { background-color: #c05621; }
+
+        .btn-entrada { background-color: var(--success); }
+        .btn-entrada:hover { background-color: #22543d; }
+
+        .btn-danger { background-color: #cbd5e0; color: #4a5568; margin-top: 10px; font-size: 0.9rem; padding: 8px; }
+        .btn-danger:hover { background-color: var(--danger); color: white; }
+
+        .btn-logout { background-color: #718096; max-width: 150px; float: right; margin-top: -50px; padding: 8px; font-size: 0.9rem;}
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.85rem;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { background-color: #edf2f7; color: var(--text); }
+
+        .resumo-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .resumo-item {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .resumo-item span {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .badge {
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+        .badge-transito { background: #feebc8; color: #c05621; }
+        .badge-concluido { background: #c6f6d5; color: #22543d; }
+
+        .erro-msg {
+            color: var(--danger);
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: none;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .lista-usuarios {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .grid { grid-template-columns: 1fr; }
+            .card:first-child, button, .btn-logout, #card-usuarios, .bloco-comandos { display: none !important; }
+            .card { border: none; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div id="tela-login">
+        <div class="login-card">
+            <h2>Expedição - Login</h2>
+            <form id="form-login">
+                <div class="form-group">
+                    <label for="usuario_login">Usuário</label>
+                    <input type="text" id="usuario_login" placeholder="Ex: sm623199" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="senha_login">Senha</label>
+                    <input type="password" id="senha_login" placeholder="Sua senha" required>
+                    <div id="erro-login" class="erro-msg">Usuário ou Senha incorretos!</div>
+                </div>
+                <button type="submit" class="btn-saida" style="background-color: var(--primary)">Entrar no Sistema</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="painel-principal">
+        <header>
+            <h1>Controle de Expedição Diária</h1>
+            <p>Sincronização em Nuvem - Acesso de Qualquer Dispositivo</p>
+            <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+        </header>
+
+        <div class="grid">
+            <div class="bloco-comandos">
+                <div class="card">
+                    <h2>🚀 Registrar Saída de Carreta</h2>
+                    <form id="form-saida">
+                        <div class="form-group">
+                            <label for="origem">Local de Origem</label>
+                            <select id="origem" required>
+                                <option value="Retífica">Retífica</option>
+                                <option value="Classificação">Classificação</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="destino">Local de Envio (Destino)</label>
+                            <select id="destino" required>
+                                <option value="CD">CD</option>
+                                <option value="Refratário">Refratário</option>
+                                <option value="Pátio">Pátio</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bitola">Bitola (Formato)</label>
+                            <select id="bitola" required>
+                                <option value="90x90">90x90 (3 pçs por caixa | 0.81m² pç)</option>
+                                <option value="32x60">32x60 (12 pçs por caixa | 2.30m² cx)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="paletes">Quantidade de Paletes</label>
+                            <input type="number" id="paletes" min="1" value="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="caixas_por_palete">Caixas por Palete</label>
+                            <input type="number" id="caixas_por_palete" min="1" placeholder="Ex: 60" required>
+                        </div>
+
+                        <button type="submit" class="btn-saida">Lançar Saída da Carreta</button>
+                    </form>
+                </div>
+
+                <div class="card" style="border-top: 4px solid var(--success);">
+                    <h2>📥 Registrar Entrada (Retorno)</h2>
+                    <form id="form-entrada">
+                        <div class="form-group">
+                            <label for="selecionar_viagem">Selecione a Carreta em Trânsito</label>
+                            <select id="selecionar_viagem" required>
+                                <option value="">-- Carregando viagens... --</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-entrada">Confirmar Entrada / Chegada</button>
+                    </form>
+                </div>
+
+                <div class="card" id="card-usuarios">
+                    <h2>Gerenciar Logins</h2>
+                    <form id="form-novo-usuario">
+                        <div class="form-group">
+                            <input type="text" id="novo_usuario" placeholder="Novo usuário" required autocomplete="off" style="margin-bottom: 8px;">
+                            <input type="password" id="nova_senha" placeholder="Senha" required>
+                        </div>
+                        <button type="submit" style="background-color: #4a5568; padding: 8px; font-size: 0.9rem;">+ Adicionar Login</button>
+                    </form>
+                    <div class="lista-usuarios" id="lista-usuarios-cadastrados"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Relatório Consolidado do Dia</h2>
+                
+                <div class="resumo-cards">
+                    <div class="resumo-item">
+                        <p>Total Viagens</p>
+                        <span id="resumo-viagens">0</span>
+                    </div>
+                    <div class="resumo-item">
+                        <p>Total Paletes</p>
+                        <span id="resumo-paletes">0</span>
+                    </div>
+                    <div class="resumo-item">
+                        <p>Total Enviado</p>
+                        <span id="resumo-metros" style="font-size:1.3rem;">0.00 m²</span>
+                    </div>
+                </div>
+
+                <h2>Histórico de Movimentações</h2>
+                <div class="table-container">
+                    <table id="tabela-viagens">
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Rota</th>
+                                <th>Bitola</th>
+                                <th>Carga</th>
+                                <th>Metragem</th>
+                                <th>Saída</th>
+                                <th>Retorno</th>
+                                <th>Duração</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                
+                <button class="btn-entrada" onclick="window.print()" style="margin-top:20px;">Imprimir / Gerar PDF do Relatório</button>
+                <button class="btn-danger" onclick="limparDados()">Limpar Todos os Dados do Dia</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuração do seu Firebase Database Cloud conforme o seu link direto
+    const firebaseConfig = {
+        databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/"
+    };
+    
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    let bancoUsuarios = [{ user: "sm623199", senha: "sergio123" }];
+    let viagens = [];
+    let usuarioLogado = sessionStorage.getItem('usuario_logado') || null;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        if (usuarioLogado) { mostrarPainelPrincipal(); } else { mostrarTelaLogin(); }
+        
+        // Sincronização em Tempo Real dos Usuários
+        database.ref('usuarios').on('value', (snapshot) => {
+            const dados = snapshot.val();
+            bancoUsuarios = [{ user: "sm623199", senha: "sergio123" }];
+            if (dados) {
+                Object.keys(dados).forEach(key => {
+                    bancoUsuarios.push(dados[key]);
+                });
+            }
+            atualizarListaUsuariosVisual();
+        });
+
+        // Sincronização em Tempo Real das Viagens
+        database.ref('viagens').on('value', (snapshot) => {
+            const dados = snapshot.val();
+            viagens = [];
+            if (dados) {
+                Object.keys(dados).forEach(key => {
+                    viagens.push(dados[key]);
+                });
+            }
+            atualizarTabela();
+            atualizarResumo();
+            atualizarSelectEntrada();
+        });
+    });
+
+    // Login
+    document.getElementById('form-login').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const userIn = document.getElementById('usuario_login').value.trim();
+        const senhaIn = document.getElementById('senha_login').value;
+
+        const contaValida = bancoUsuarios.find(u => u.user === userIn && u.senha === senhaIn);
+
+        if (contaValida) {
+            sessionStorage.setItem('usuario_logado', userIn);
+            usuarioLogado = userIn;
+            document.getElementById('erro-login').style.display = 'none';
+            document.getElementById('usuario_login').value = '';
+            document.getElementById('senha_login').value = '';
+            mostrarPainelPrincipal();
+        } else {
+            document.getElementById('erro-login').style.display = 'block';
+        }
+    });
+
+    // Novo Login
+    document.getElementById('form-novo-usuario').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nu = document.getElementById('novo_usuario').value.trim();
+        const ns = document.getElementById('nova_senha').value;
+
+        if (nu && ns && !bancoUsuarios.some(u => u.user === nu)) {
+            database.ref('usuarios/' + nu).set({ user: nu, senha: ns });
+            alert(`Acesso para "${nu}" cadastrado na nuvem!`);
+            document.getElementById('novo_usuario').value = '';
+            document.getElementById('nova_senha').value = '';
+        } else {
+            alert("Usuário inválido ou já existente.");
+        }
+    });
+
+    // LANÇAR SAÍDA
+    document.getElementById('form-saida').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const origem = document.getElementById('origem').value;
+        const destino = document.getElementById('destino').value;
+        const bitola = document.getElementById('bitola').value;
+        const paletes = parseInt(document.getElementById('paletes').value);
+        const caixasPorPalete = parseInt(document.getElementById('caixas_por_palete').value);
+
+        const caixasTotais = paletes * caixasPorPalete;
+        let totalMetrosViagem = 0;
+        
+        if (bitola === "90x90") {
+            totalMetrosViagem = caixasTotais * 3 * 0.81;
+        } else if (bitola === "32x60") {
+            totalMetrosViagem = caixasTotais * 2.30;
+        }
+
+        const agora = new Date();
+        const horaSaidaTexto = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const proximoId = viagens.length + 1;
+
+        const novaViagem = {
+            id: proximoId,
+            origem,
+            destino,
+            bitola,
+            paletes,
+            caixas: caixasTotais,
+            metros: totalMetrosViagem,
+            timestampSaida: agora.getTime(),
+            horaSaida: horaSaidaTexto,
+            horaRetorno: "---",
+            duracao: "---",
+            status: "Em Trânsito"
+        };
+
+        database.ref('viagens/' + proximoId).set(novaViagem);
+
+        document.getElementById('caixas_por_palete').value = '';
+        document.getElementById('paletes').value = '1';
+        alert(`Saída da Viagem #${proximoId} enviada para a nuvem!`);
+    });
+
+    // LANÇAR ENTRADA
+    document.getElementById('form-entrada').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const idViagem = parseInt(document.getElementById('selecionar_viagem').value);
+
+        if(!idViagem) {
+            alert("Por favor, selecione uma carreta ativa.");
+            return;
+        }
+
+        const viagem = viagens.find(v => v.id === idViagem);
+        if (viagem && viagem.status === "Em Trânsito") {
+            const agora = new Date();
+            const timestampRetorno = agora.getTime();
+            
+            const diferencaMs = timestampRetorno - viagem.timestampSaida;
+            const totalMinutos = Math.floor(diferencaMs / 1000 / 60);
+            const horas = Math.floor(totalMinutos / 60);
+            const minutos = totalMinutos % 60;
+
+            viagem.horaRetorno = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            viagem.duracao = horas > 0 ? `${horas}h ${minutos}min` : `${minutos} min`;
+            viagem.status = "Concluído";
+
+            database.ref('viagens/' + idViagem).set(viagem);
+            alert(`Entrada da Viagem #${idViagem} atualizada em todos os aparelhos!`);
+        }
+    });
+
+    function atualizarSelectEntrada() {
+        const select = document.getElementById('selecionar_viagem');
+        select.innerHTML = '<option value="">-- Selecione a Carreta que Voltou --</option>';
+        const emTransito = viajes = viagens.filter(v => v.status === "Em Trânsito");
+        emTransito.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.innerText = `#${v.id} - De: ${v.origem} Para: ${v.destino} (${v.bitola})`;
+            select.appendChild(opt);
+        });
+    }
+
+    function atualizarTabela() {
+        const tbody = document.querySelector('#tabela-viagens tbody');
+        tbody.innerHTML = ''; 
+        viagens.forEach(v => {
+            const tr = document.createElement('tr');
+            let statusBadge = v.status === "Em Trânsito" 
+                ? `<span class="badge badge-transito">🚚 Na Rua</span>`
+                : `<span class="badge badge-concluido">✔ Concluído</span>`;
+
+            tr.innerHTML = `
+                <td><strong>#${v.id}</strong></td>
+                <td>${v.origem} ➔ ${v.destino}</td>
+                <td>${v.bitola}</td>
+                <td>${v.paletes} Pl / ${v.caixas} Cx</td>
+                <td><strong>${v.metros.toFixed(2)} m²</strong></td>
+                <td>⏱ ${v.horaSaida}</td>
+                <td>⏱ ${v.horaRetorno}</td>
+                <td><strong>${v.duracao}</strong></td>
+                <td>${statusBadge}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function atualizarResumo() {
+        const totalViagens = viagens.length;
+        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
+        const totalMetros = viajes.reduce((acc, v) => acc + v.metros, 0);
+
+        document.getElementById('resumo-viagens').innerText = totalViagens;
+        document.getElementById('resumo-paletes').innerText = totalPaletes;
+        document.getElementById('resumo-metros').innerText = totalMetros.toFixed(2) + " m²";
+    }
+
+    function mostrarPainelPrincipal() {
+        document.getElementById('tela-login').style.display = 'none';
+        document.getElementById('painel-principal').style.display = 'block';
+    }
+
+    function mostrarTelaLogin() {
+        document.getElementById('tela-login').style.display = 'flex';
+        document.getElementById('painel-principal').style.display = 'none';
+    }
+
+    function limparDados() {
+        if(confirm("Deseja resetar todo o relatório e frotas da nuvem (irá apagar em todos os aparelhos)?")) {
+            database.ref('viagens').remove();
+        }
+    }
+
+    function fazerLogout() {
+        sessionStorage.removeItem('usuario_logado');
+        usuarioLogado = null;
+        mostrarTelaLogin();
+    }
+
+    function atualizarListaUsuariosVisual() {
+        const listaDiv = document.getElementById('lista-usuarios-cadastrados');
+        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
+        bancoUsuarios.forEach(u => { listaDiv.innerHTML += `• ${u.user}<br>`; });
+    }
+</script>
+
+</body>
+</html>
 
         header {
             text-align: center;
