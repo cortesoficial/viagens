@@ -356,7 +356,7 @@
                     </table>
                 </div>
                 
-                <button class="btn-entrada" onclick="gerarPDFMobile()" style="margin-top:20px; background-color: var(--primary);">📥 Baixar Relatório PDF no Celular</button>
+                <button class="btn-entrada" onclick="gerarPDFMobile()" style="margin-top:20px; background-color: var(--primary);">📄 Abrir Relatório PDF na Tela</button>
                 <button class="btn-danger" onclick="limparDados()">❌ Limpar Dados do Dia</button>
             </div>
         </div>
@@ -493,7 +493,8 @@
             return;
         }
 
-        const viagem = viajes = viagens.find(v => v.id === idViagem);
+        // LIMPEZA DA VARIÁVEL DUPLICADA QUE CAUSAVA DROPS NO CONSOLE MOBILE
+        const viagem = viagens.find(v => v.id === idViagem);
         if (viagem && viagem.status === "Em Trânsito") {
             const agora = new Date();
             const timestampRetorno = agora.getTime();
@@ -550,14 +551,14 @@
     function atualizarResumo() {
         const totalViagens = viagens.length;
         const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
-        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
+        const totalMetros = viajes = viagens.reduce((acc, v) => acc + v.metros, 0);
 
         document.getElementById('resumo-viagens').innerText = totalViagens;
         document.getElementById('resumo-paletes').innerText = totalPaletes;
         document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
     }
 
-    // NOVA FUNÇÃO EXCLUSIVA PARA CELULAR GERAR PDF SEM TRAVAR
+    // MÉTODO MODIFICADO: GERA BLOB DATAURI E ABRE DIRETAMENTE NA TELA DO SMARTPHONE
     function gerarPDFMobile() {
         if(viagens.length === 0) {
             alert("Não há dados de viagens para gerar o relatório hoje!");
@@ -568,10 +569,9 @@
         const doc = new jsPDF();
         const dataHoje = new Date().toLocaleDateString('pt-BR');
 
-        // Cabeçalho do Documento
         doc.setFont("Helvetica", "bold");
         doc.setFontSize(18);
-        doc.setTextColor(43, 108, 176); // Azul do app
+        doc.setTextColor(43, 108, 176); 
         doc.text("RELATÓRIO DIÁRIO DE EXPEDIÇÃO", 14, 20);
         
         doc.setFontSize(10);
@@ -579,11 +579,9 @@
         doc.setTextColor(113, 128, 150);
         doc.text(`Gerado em: ${dataHoje} | Sistema de Controle de Carretas`, 14, 26);
         
-        // Linha divisória
         doc.setDrawColor(226, 232, 240);
         doc.line(14, 30, 196, 30);
 
-        // Bloco de Totais Consolidados
         const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
         const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
 
@@ -599,16 +597,14 @@
 
         doc.line(14, 66, 196, 66);
 
-        // Histórico de Viagens
         doc.setFont("Helvetica", "bold");
         doc.text("HISTÓRICO DETALHADO DAS CARRETAS:", 14, 76);
 
         let y = 86;
         doc.setFontSize(9);
         
-        // Loop para desenhar cada viagem em formato de lista limpa no PDF
         viagens.forEach((v) => {
-            if (y > 270) { // Cria nova página se o PDF encher
+            if (y > 270) { 
                 doc.addPage();
                 y = 20;
             }
@@ -622,20 +618,26 @@
             doc.text(`Rota: ${v.origem} -> ${v.destino}  |  Bitola: ${v.bitola}  |  Carga: ${v.paletes} Pl (${v.caixas} Cx)`, 14, y + 5);
             doc.text(`Saída: ${v.horaSaida}  |  Retorno: ${v.horaRetorno}  |  Duração: ${v.duracao}  |  Total: ${v.metros.toFixed(2)} m²`, 14, y + 10);
             
-            // Pequena linha tracejada separando as carretas
             doc.setDrawColor(240, 244, 248);
             doc.line(14, y + 14, 196, y + 14);
             
             y += 20;
         });
 
-        // Salva o PDF com o nome da data de hoje automático
-        const nomeArquivo = `Relatorio_Expedicao_${dataHoje.replace(/\//g, '-')}.pdf`;
-        doc.save(nomeArquivo);
+        // Solução infalível: Transforma em string de dados e injeta direto em uma aba limpa do navegador
+        const stringPdf = doc.output('datauristring');
+        const novaAba = window.open();
+        if(novaAba) {
+            novaAba.document.write(`<iframe width='100%' height='100%' style='margin:0; padding:0; border:none;' src='${stringPdf}'></iframe>`);
+        } else {
+            // Caso o bloqueador de popups do celular barre a nova aba, ele baixa por segurança secundária
+            doc.save(`Relatorio_Expedicao_${dataHoje.replace(/\//g, '-')}.pdf`);
+        }
     }
 
     function mostrarPainelPrincipal() {
         document.getElementById('tela-login').style.display = 'none';
+        document.getElementById('panel-principal') ? document.getElementById('panel-principal').style.display = 'block' : null;
         document.getElementById('painel-principal').style.display = 'block';
     }
 
@@ -659,3 +661,8 @@
         usuarioLogado = null;
         mostrarTelaLogin();
     }
+
+    function atualizarListaUsuariosVisual() {
+        const listaDiv = document.getElementById('lista-usuarios-cadastrados');
+        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
+        bancoUsuarios.forEach(u => { listaDiv.innerHTML
