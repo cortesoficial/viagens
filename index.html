@@ -493,7 +493,6 @@
             return;
         }
 
-        // LIMPEZA DA VARIÁVEL DUPLICADA QUE CAUSAVA DROPS NO CONSOLE MOBILE
         const viagem = viagens.find(v => v.id === idViagem);
         if (viagem && viagem.status === "Em Trânsito") {
             const agora = new Date();
@@ -548,17 +547,17 @@
         });
     }
 
+    // AQUI FOI TOTALMENTE LIMPO O BUG DO "= viajes ="
     function atualizarResumo() {
         const totalViagens = viagens.length;
         const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
-        const totalMetros = viajes = viagens.reduce((acc, v) => acc + v.metros, 0);
+        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
 
         document.getElementById('resumo-viagens').innerText = totalViagens;
         document.getElementById('resumo-paletes').innerText = totalPaletes;
         document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
     }
 
-    // MÉTODO MODIFICADO: GERA BLOB DATAURI E ABRE DIRETAMENTE NA TELA DO SMARTPHONE
     function gerarPDFMobile() {
         if(viagens.length === 0) {
             alert("Não há dados de viagens para gerar o relatório hoje!");
@@ -624,20 +623,17 @@
             y += 20;
         });
 
-        // Solução infalível: Transforma em string de dados e injeta direto em uma aba limpa do navegador
         const stringPdf = doc.output('datauristring');
         const novaAba = window.open();
         if(novaAba) {
             novaAba.document.write(`<iframe width='100%' height='100%' style='margin:0; padding:0; border:none;' src='${stringPdf}'></iframe>`);
         } else {
-            // Caso o bloqueador de popups do celular barre a nova aba, ele baixa por segurança secundária
             doc.save(`Relatorio_Expedicao_${dataHoje.replace(/\//g, '-')}.pdf`);
         }
     }
 
     function mostrarPainelPrincipal() {
         document.getElementById('tela-login').style.display = 'none';
-        document.getElementById('panel-principal') ? document.getElementById('panel-principal').style.display = 'block' : null;
         document.getElementById('painel-principal').style.display = 'block';
     }
 
@@ -664,5 +660,5 @@
 
     function atualizarListaUsuariosVisual() {
         const listaDiv = document.getElementById('lista-usuarios-cadastrados');
-        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
-        bancoUsuarios.forEach(u => { listaDiv.innerHTML
+        if(listaDiv) {
+            listaDiv.innerHTML = '
