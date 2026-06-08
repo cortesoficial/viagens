@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Controle de Expedição e Logística</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -13,7 +13,7 @@
             --success: #2f855a;
             --danger: #e53e3e;
             --warning: #dd6b20;
-            --background: #f7fafc;
+            --background: #edf2f7;
             --card-bg: #ffffff;
             --text: #2d3748;
             --border: #e2e8f0;
@@ -24,12 +24,14 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--background);
             color: var(--text);
-            padding: 20px;
+            padding: 12px;
+            font-size: 16px; /* Evita zoom automático no iOS ao focar campos */
         }
 
         .container {
@@ -39,86 +41,95 @@
 
         header {
             text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+            padding: 15px 10px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         }
 
-        h1 { color: var(--primary); margin-bottom: 5px; }
-        h2 { color: var(--primary); margin-bottom: 15px; font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        header h1 { color: var(--primary); font-size: 1.6rem; margin-bottom: 4px; }
+        header p { font-size: 0.9rem; color: #718096; }
 
+        /* Tela de Login Adaptada */
         #tela-login {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
+            min-height: 85vh;
         }
 
         .login-card {
             background: var(--card-bg);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-            border: 1px solid var(--border);
+            padding: 25px 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
             width: 100%;
             max-width: 400px;
         }
 
-        .login-card h2 { text-align: center; margin-bottom: 20px; border: none; }
+        .login-card h2 { text-align: center; margin-bottom: 20px; color: var(--primary); border: none; }
 
         #painel-principal { display: none; }
 
         .grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
+            gap: 16px;
         }
 
         @media (min-width: 992px) {
-            .grid { grid-template-columns: 1fr 2fr; }
+            .grid { grid-template-columns: 1fr 1.6fr; }
         }
 
         .card {
             background: var(--card-bg);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
+            padding: 20px 16px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            margin-bottom: 4px;
         }
 
-        .form-group { margin-bottom: 12px; }
+        h2 { color: var(--primary); margin-bottom: 18px; font-size: 1.25rem; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+
+        .form-group { margin-bottom: 16px; }
 
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             font-weight: 600;
             font-size: 0.9rem;
+            color: #4a5568;
         }
 
         select, input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 5px;
+            padding: 14px; /* Mais alto para facilitar o toque no celular */
+            border: 1px solid #cbd5e0;
+            border-radius: 10px;
             font-size: 1rem;
+            background-color: #f7fafc;
+            transition: all 0.2s;
         }
 
         select:focus, input:focus {
             outline: none;
             border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 15px; /* Botões grandes no mobile */
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
             transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
         }
         
         .btn-saida { background-color: var(--warning); }
@@ -127,84 +138,105 @@
         .btn-entrada { background-color: var(--success); }
         .btn-entrada:hover { background-color: #22543d; }
 
-        .btn-danger { background-color: #cbd5e0; color: #4a5568; margin-top: 10px; font-size: 0.9rem; padding: 8px; }
+        .btn-danger { background-color: #e2e8f0; color: #4a5568; margin-top: 12px; font-size: 0.9rem; padding: 12px; box-shadow: none; }
         .btn-danger:hover { background-color: var(--danger); color: white; }
 
-        .btn-logout { background-color: #718096; max-width: 150px; float: right; margin-top: -50px; padding: 8px; font-size: 0.9rem;}
+        .btn-logout { background-color: #e2e8f0; color: #4a5568; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; margin-top: 10px; width: auto; display: inline-block; box-shadow: none; }
 
-        .table-container {
-            overflow-x: auto;
-            margin-top: 15px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.85rem;
-        }
-
-        th, td {
-            padding: 10px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th { background-color: #edf2f7; color: var(--text); }
-
+        /* Resumos no topo do relatório */
         .resumo-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
             margin-bottom: 20px;
         }
 
         .resumo-item {
-            background: #edf2f7;
-            padding: 15px;
-            border-radius: 6px;
+            background: #f7fafc;
+            padding: 12px 6px;
+            border-radius: 10px;
             text-align: center;
+            border: 1px solid var(--border);
         }
 
+        .resumo-item p { font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
         .resumo-item span {
             display: block;
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             font-weight: bold;
             color: var(--primary);
         }
 
+        /* TABELA ADAPTADA PARA VIRAR CARD NO CELULAR */
+        .table-container { margin-top: 10px; }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        /* Estilo Desktop Padrão */
+        thead { display: table-header-group; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
+        th { background-color: #f7fafc; color: #4a5568; font-size: 0.85rem; }
+
+        /* Regras de Visualização Responsiva (Mobile) */
+        @media (max-width: 768px) {
+            thead { display: none; } /* Esconde o cabeçalho no celular */
+            
+            table, tbody, tr, td { display: block; width: 100%; }
+            
+            tr {
+                background: #f7fafc;
+                margin-bottom: 12px;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 12px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            }
+
+            td {
+                text-align: right;
+                padding: 6px 0;
+                border-bottom: 1px dashed #edf2f7;
+                font-size: 0.95rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            td:last-child { border-bottom: none; padding-top: 10px; }
+
+            /* Injeta os títulos dinamicamente no mobile */
+            td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                text-align: left;
+                color: #718096;
+                font-size: 0.85rem;
+            }
+        }
+
         .badge {
-            padding: 4px 6px;
-            border-radius: 4px;
+            padding: 6px 10px;
+            border-radius: 20px;
             font-weight: bold;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
+            display: inline-block;
         }
         .badge-transito { background: #feebc8; color: #c05621; }
         .badge-concluido { background: #c6f6d5; color: #22543d; }
 
-        .erro-msg {
-            color: var(--danger);
-            font-size: 0.9rem;
-            margin-top: 10px;
-            display: none;
-            font-weight: bold;
-            text-align: center;
-        }
+        .erro-msg { color: var(--danger); font-size: 0.9rem; margin-top: 10px; display: none; font-weight: bold; text-align: center; }
 
-        .lista-usuarios {
-            margin-top: 10px;
-            font-size: 0.85rem;
-            background: #f7fafc;
-            padding: 10px;
-            border-radius: 5px;
-            max-height: 80px;
-            overflow-y: auto;
-        }
+        .lista-usuarios { margin-top: 10px; font-size: 0.85rem; background: #f7fafc; padding: 10px; border-radius: 8px; max-height: 90px; overflow-y: auto; border: 1px solid var(--border); }
 
         @media print {
             body { background: white; padding: 0; }
             .grid { grid-template-columns: 1fr; }
             .card:first-child, button, .btn-logout, #card-usuarios, .bloco-comandos { display: none !important; }
             .card { border: none; box-shadow: none; }
+            thead { display: table-header-group !important; }
+            tr { display: table-row !important; border: none; background: transparent; }
+            td { display: table-cell !important; text-align: left !important; padding: 8px !important; border-bottom: 1px solid var(--border) !important; }
+            td::before { display: none !important; }
         }
     </style>
 </head>
@@ -225,22 +257,22 @@
                     <input type="password" id="senha_login" placeholder="Sua senha" required>
                     <div id="erro-login" class="erro-msg">Usuário ou Senha incorretos!</div>
                 </div>
-                <button type="submit" class="btn-saida" style="background-color: var(--primary)">Entrar no Sistema</button>
+                <button type="submit" style="background-color: var(--primary)">Entrar no Sistema</button>
             </form>
         </div>
     </div>
 
     <div id="painel-principal">
         <header>
-            <h1>Controle de Expedição Diária</h1>
-            <p>Sincronização em Nuvem - Acesso de Qualquer Dispositivo</p>
-            <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+            <h1>Controle de Expedição</h1>
+            <p>Sincronizado na Nuvem Firebase</p>
+            <button class="btn-logout" onclick="fazerLogout()">🔓 Sair da Conta</button>
         </header>
 
         <div class="grid">
             <div class="bloco-comandos">
                 <div class="card">
-                    <h2>🚀 Registrar Saída de Carreta</h2>
+                    <h2>🚀 Registrar Saída</h2>
                     <form id="form-saida">
                         <div class="form-group">
                             <label for="origem">Local de Origem</label>
@@ -269,15 +301,15 @@
 
                         <div class="form-group">
                             <label for="paletes">Quantidade de Paletes</label>
-                            <input type="number" id="paletes" min="1" value="1" required>
+                            <input type="number" id="paletes" min="1" value="1" inputmode="numeric" required>
                         </div>
 
                         <div class="form-group">
                             <label for="caixas_por_palete">Caixas por Palete</label>
-                            <input type="number" id="caixas_por_palete" min="1" placeholder="Ex: 60" required>
+                            <input type="number" id="caixas_por_palete" min="1" placeholder="Ex: 60" inputmode="numeric" required>
                         </div>
 
-                        <button type="submit" class="btn-saida">Lançar Saída da Carreta</button>
+                        <button type="submit" class="btn-saida">Lançar Saída</button>
                     </form>
                 </div>
 
@@ -285,12 +317,12 @@
                     <h2>📥 Registrar Entrada (Retorno)</h2>
                     <form id="form-entrada">
                         <div class="form-group">
-                            <label for="selecionar_viagem">Selecione a Carreta em Trânsito</label>
+                            <label for="selecionar_viagem">Selecione a Carreta que Voltou</label>
                             <select id="selecionar_viagem" required>
                                 <option value="">-- Carregando viagens... --</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn-entrada">Confirmar Entrada / Chegada</button>
+                        <button type="submit" class="btn-entrada">Confirmar Chegada</button>
                     </form>
                 </div>
 
@@ -301,27 +333,27 @@
                             <input type="text" id="novo_usuario" placeholder="Novo usuário" required autocomplete="off" style="margin-bottom: 8px;">
                             <input type="password" id="nova_senha" placeholder="Senha" required>
                         </div>
-                        <button type="submit" style="background-color: #4a5568; padding: 8px; font-size: 0.9rem;">+ Adicionar Login</button>
+                        <button type="submit" style="background-color: #4a5568; padding: 12px; font-size: 0.9rem;">+ Adicionar Login</button>
                     </form>
                     <div class="lista-usuarios" id="lista-usuarios-cadastrados"></div>
                 </div>
             </div>
 
             <div class="card">
-                <h2>Relatório Consolidado do Dia</h2>
+                <h2>Relatório do Dia</h2>
                 
                 <div class="resumo-cards">
                     <div class="resumo-item">
-                        <p>Total Viagens</p>
+                        <p>Viagens</p>
                         <span id="resumo-viagens">0</span>
                     </div>
                     <div class="resumo-item">
-                        <p>Total Paletes</p>
+                        <p>Paletes</p>
                         <span id="resumo-paletes">0</span>
                     </div>
                     <div class="resumo-item">
-                        <p>Total Enviado</p>
-                        <span id="resumo-metros" style="font-size:1.3rem;">0.00 m²</span>
+                        <p>Enviado</p>
+                        <span id="resumo-metros">0 m²</span>
                     </div>
                 </div>
 
@@ -345,20 +377,18 @@
                     </table>
                 </div>
                 
-                <button class="btn-entrada" onclick="window.print()" style="margin-top:20px;">Imprimir / Gerar PDF do Relatório</button>
-                <button class="btn-danger" onclick="limparDados()">Limpar Todos os Dados do Dia</button>
+                <button class="btn-entrada" onclick="window.print()" style="margin-top:20px; background-color: var(--primary);">🖨 Imprimir / Gerar PDF</button>
+                <button class="btn-danger" onclick="limparDados()">❌ Limpar Dados do Dia</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Configuração do seu Firebase Database Cloud conforme o seu link direto
     const firebaseConfig = {
         databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/"
     };
     
-    // Inicializa o Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
@@ -369,7 +399,6 @@
     document.addEventListener("DOMContentLoaded", function() {
         if (usuarioLogado) { mostrarPainelPrincipal(); } else { mostrarTelaLogin(); }
         
-        // Sincronização em Tempo Real dos Usuários
         database.ref('usuarios').on('value', (snapshot) => {
             const dados = snapshot.val();
             bancoUsuarios = [{ user: "sm623199", senha: "sergio123" }];
@@ -381,7 +410,6 @@
             atualizarListaUsuariosVisual();
         });
 
-        // Sincronização em Tempo Real das Viagens
         database.ref('viagens').on('value', (snapshot) => {
             const dados = snapshot.val();
             viagens = [];
@@ -396,7 +424,6 @@
         });
     });
 
-    // Login
     document.getElementById('form-login').addEventListener('submit', function(e) {
         e.preventDefault();
         const userIn = document.getElementById('usuario_login').value.trim();
@@ -416,7 +443,6 @@
         }
     });
 
-    // Novo Login
     document.getElementById('form-novo-usuario').addEventListener('submit', function(e) {
         e.preventDefault();
         const nu = document.getElementById('novo_usuario').value.trim();
@@ -424,7 +450,7 @@
 
         if (nu && ns && !bancoUsuarios.some(u => u.user === nu)) {
             database.ref('usuarios/' + nu).set({ user: nu, senha: ns });
-            alert(`Acesso para "${nu}" cadastrado na nuvem!`);
+            alert(`Acesso para "${nu}" cadastrado!`);
             document.getElementById('novo_usuario').value = '';
             document.getElementById('nova_senha').value = '';
         } else {
@@ -432,7 +458,6 @@
         }
     });
 
-    // LANÇAR SAÍDA
     document.getElementById('form-saida').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -454,7 +479,6 @@
         const agora = new Date();
         const horaSaidaTexto = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         
-        // Corrigido cálculo do ID sequencial para evitar sobreposição caso existam saltos
         let proximoId = 1;
         if (viagens.length > 0) {
             proximoId = Math.max(...viagens.map(v => v.id)) + 1;
@@ -479,16 +503,14 @@
 
         document.getElementById('caixas_por_palete').value = '';
         document.getElementById('paletes').value = '1';
-        alert(`Saída da Viagem #${proximoId} enviada para a nuvem!`);
     });
 
-    // LANÇAR ENTRADA
     document.getElementById('form-entrada').addEventListener('submit', function(e) {
         e.preventDefault();
         const idViagem = parseInt(document.getElementById('selecionar_viagem').value);
 
         if(!idViagem) {
-            alert("Por favor, selecione uma carreta ativa.");
+            alert("Selecione uma carreta ativa.");
             return;
         }
 
@@ -503,24 +525,21 @@
             const minutos = totalMinutos % 60;
 
             viagem.horaRetorno = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            viagem.duracao = horas > 0 ? `${horas}h ${minutos}min` : `${minutos} min`;
+            viagem.duracao = horas > 0 ? `${horas}h ${minutos}m` : `${minutos} min`;
             viagem.status = "Concluído";
 
             database.ref('viagens/' + idViagem).set(viagem);
-            alert(`Entrada da Viagem #${idViagem} atualizada em todos os aparelhos!`);
         }
     });
 
     function atualizarSelectEntrada() {
         const select = document.getElementById('selecionar_viagem');
-        select.innerHTML = '<option value="">-- Selecione a Carreta que Voltou --</option>';
-        
-        // Correção na atribuição da variável de filtro que causava conflito
+        select.innerHTML = '<option value="">-- Selecione a Carreta --</option>';
         const emTransito = viagens.filter(v => v.status === "Em Trânsito");
         emTransito.forEach(v => {
             const opt = document.createElement('option');
             opt.value = v.id;
-            opt.innerText = `#${v.id} - De: ${v.origem} Para: ${v.destino} (${v.bitola})`;
+            opt.innerText = `#${v.id} - De: ${v.origem} Para: ${v.destino}`;
             select.appendChild(opt);
         });
     }
@@ -535,21 +554,20 @@
                 : `<span class="badge badge-concluido">✔ Concluído</span>`;
 
             tr.innerHTML = `
-                <td><strong>#${v.id}</strong></td>
-                <td>${v.origem} ➔ ${v.destino}</td>
-                <td>${v.bitola}</td>
-                <td>${v.paletes} Pl / ${v.caixas} Cx</td>
-                <td><strong>${v.metros.toFixed(2)} m²</strong></td>
-                <td>⏱ ${v.horaSaida}</td>
-                <td>⏱ ${v.horaRetorno}</td>
-                <td><strong>${v.duracao}</strong></td>
-                <td>${statusBadge}</td>
+                <td data-label="Nº"><strong>#${v.id}</strong></td>
+                <td data-label="Rota">${v.origem} ➔ ${v.destino}</td>
+                <td data-label="Bitola">${v.bitola}</td>
+                <td data-label="Carga">${v.paletes} Pl / ${v.caixas} Cx</td>
+                <td data-label="Metragem"><strong>${v.metros.toFixed(2)} m²</strong></td>
+                <td data-label="Saída">⏱ ${v.horaSaida}</td>
+                <td data-label="Retorno">⏱ ${v.horaRetorno}</td>
+                <td data-label="Duração"><strong>${v.duracao}</strong></td>
+                <td data-label="Status">${statusBadge}</td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // Correção de escopo na soma da metragem dos blocos superiores de resumo
     function atualizarResumo() {
         const totalViagens = viagens.length;
         const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
@@ -557,7 +575,7 @@
 
         document.getElementById('resumo-viagens').innerText = totalViagens;
         document.getElementById('resumo-paletes').innerText = totalPaletes;
-        document.getElementById('resumo-metros').innerText = totalMetros.toFixed(2) + " m²";
+        document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
     }
 
     function mostrarPainelPrincipal() {
@@ -565,13 +583,17 @@
         document.getElementById('painel-principal').style.display = 'block';
     }
 
+    document.getElementById('usuario_login').addEventListener('focus', function() {
+        window.scrollTo(0, 0);
+    });
+
     function mostrarTelaLogin() {
         document.getElementById('tela-login').style.display = 'flex';
         document.getElementById('painel-principal').style.display = 'none';
     }
 
     function limparDados() {
-        if(confirm("Deseja resetar todo o relatório e frotas da nuvem (gostaria de apagar em todos os aparelhos)?")) {
+        if(confirm("Deseja resetar todo o relatório da nuvem?")) {
             database.ref('viagens').remove();
         }
     }
