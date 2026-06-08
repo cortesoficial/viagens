@@ -19,221 +19,64 @@
             --border: #e2e8f0;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--background);
-            color: var(--text);
-            padding: 12px;
-            font-size: 16px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px 10px;
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--background); color: var(--text); padding: 12px; font-size: 16px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 20px; padding: 15px 10px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
         header h1 { color: var(--primary); font-size: 1.6rem; margin-bottom: 4px; }
         header p { font-size: 0.9rem; color: #718096; }
 
-        /* Painel de Identificação Seguro */
-        #tela-login {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 85vh;
-        }
-
-        .login-card {
-            background: var(--card-bg);
-            padding: 25px 20px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .login-card h2 { text-align: center; margin-bottom: 20px; color: var(--primary); border: none; }
-
+        #tela-login { display: flex; justify-content: center; align-items: center; min-height: 85vh; }
+        .login-card { background: var(--card-bg); padding: 25px 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
+        .login-card h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
         #painel-principal { display: none; }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+        @media (min-width: 992px) { .grid { grid-template-columns: 1fr 1.6fr; } }
 
-        @media (min-width: 992px) {
-            .grid { grid-template-columns: 1fr 1.6fr; }
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 20px 16px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
-            margin-bottom: 4px;
-        }
-
+        .card { background: var(--card-bg); padding: 20px 16px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 4px; }
         h2 { color: var(--primary); margin-bottom: 18px; font-size: 1.25rem; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-
         .form-group { margin-bottom: 16px; }
-
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #4a5568;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #cbd5e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            background-color: #f7fafc;
-            transition: all 0.2s;
-        }
-
-        select:focus, input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-        }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #4a5568; }
         
+        select, input { width: 100%; padding: 14px; border: 1px solid #cbd5e0; border-radius: 10px; font-size: 1rem; background-color: #f7fafc; transition: all 0.2s; }
+        select:focus, input:focus { outline: none; border-color: var(--primary); background-color: #fff; }
+
+        button { width: 100%; padding: 15px; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
         .btn-saida { background-color: var(--warning); }
-        .btn-saida:hover { background-color: #c05621; }
-
         .btn-entrada { background-color: var(--success); }
-        .btn-entrada:hover { background-color: #22543d; }
+        .btn-danger { background-color: #e2e8f0; color: #4a5568; margin-top: 12px; font-size: 0.9rem; padding: 12px; }
+        .btn-logout { background-color: #e2e8f0; color: #4a5568; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; margin-top: 10px; width: auto; display: inline-block; }
 
-        .btn-danger { background-color: #e2e8f0; color: #4a5568; margin-top: 12px; font-size: 0.9rem; padding: 12px; box-shadow: none; }
-        .btn-danger:hover { background-color: var(--danger); color: white; }
-
-        .btn-logout { background-color: #e2e8f0; color: #4a5568; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; margin-top: 10px; width: auto; display: inline-block; box-shadow: none; }
-
-        .resumo-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .resumo-item {
-            background: #f7fafc;
-            padding: 12px 6px;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid var(--border);
-        }
-
+        .resumo-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+        .resumo-item { background: #f7fafc; padding: 12px 6px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
         .resumo-item p { font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
-        .resumo-item span {
-            display: block;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--primary);
-        }
+        .resumo-item span { display: block; font-size: 1.1rem; font-weight: bold; color: var(--primary); }
 
         .table-container { margin-top: 10px; }
-
         table { width: 100%; border-collapse: collapse; }
-
-        thead { display: table-header-group; }
         th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
         th { background-color: #f7fafc; color: #4a5568; font-size: 0.85rem; }
 
         @media (max-width: 768px) {
             thead { display: none; }
             table, tbody, tr, td { display: block; width: 100%; }
-            tr {
-                background: #f7fafc;
-                margin-bottom: 12px;
-                border: 1px solid var(--border);
-                border-radius: 12px;
-                padding: 12px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            }
-            td {
-                text-align: right;
-                padding: 6px 0;
-                border-bottom: 1px dashed #edf2f7;
-                font-size: 0.95rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
+            tr { background: #f7fafc; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+            td { text-align: right; padding: 6px 0; border-bottom: 1px dashed #edf2f7; display: flex; justify-content: space-between; align-items: center; }
             td:last-child { border-bottom: none; padding-top: 10px; }
-            td::before {
-                content: attr(data-label);
-                font-weight: bold;
-                text-align: left;
-                color: #718096;
-                font-size: 0.85rem;
-            }
+            td::before { content: attr(data-label); font-weight: bold; text-align: left; color: #718096; font-size: 0.85rem; }
         }
 
-        .badge {
-            padding: 6px 10px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.8rem;
-            display: inline-block;
-        }
+        .badge { padding: 6px 10px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
         .badge-transito { background: #feebc8; color: #c05621; }
         .badge-concluido { background: #c6f6d5; color: #22543d; }
-
         .erro-msg { color: var(--danger); font-size: 0.9rem; margin-top: 10px; display: none; font-weight: bold; text-align: center; }
-
         .lista-usuarios { margin-top: 10px; font-size: 0.85rem; background: #f7fafc; padding: 10px; border-radius: 8px; max-height: 90px; overflow-y: auto; border: 1px solid var(--border); }
-
-        @media print {
-            body { background: white; padding: 0; }
-            .grid { grid-template-columns: 1fr; }
-            .card:first-child, button, .btn-logout, #card-usuarios, .bloco-comandos { display: none !important; }
-            .card { border: none; box-shadow: none; }
-            thead { display: table-header-group !important; }
-            tr { display: table-row !important; border: none; background: transparent; }
-            td { display: table-cell !important; text-align: left !important; padding: 8px !important; border-bottom: 1px solid var(--border) !important; }
-            td::before { display: none !important; }
-        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
     <div id="tela-login">
         <div class="login-card">
             <h2>Expedição - Acesso</h2>
@@ -271,7 +114,6 @@
                                 <option value="Classificação">Classificação</option>
                             </select>
                         </div>
-
                         <div class="form-group">
                             <label for="destino">Local de Envio (Destino)</label>
                             <select id="destino" required>
@@ -280,7 +122,6 @@
                                 <option value="Pátio">Pátio</option>
                             </select>
                         </div>
-
                         <div class="form-group">
                             <label for="bitola">Bitola (Formato)</label>
                             <select id="bitola" required>
@@ -288,17 +129,14 @@
                                 <option value="32x60">32x60 (12 pçs por caixa | 2.30m² cx)</option>
                             </select>
                         </div>
-
                         <div class="form-group">
                             <label for="paletes">Quantidade de Paletes</label>
                             <input type="number" id="paletes" min="1" value="1" inputmode="numeric" required>
                         </div>
-
                         <div class="form-group">
                             <label for="caixas_por_palete">Caixas por Palete</label>
                             <input type="number" id="caixas_por_palete" min="1" placeholder="Ex: 60" inputmode="numeric" required>
                         </div>
-
                         <button type="submit" class="btn-saida">Lançar Saída</button>
                     </form>
                 </div>
@@ -331,7 +169,6 @@
 
             <div class="card">
                 <h2>Relatório do Dia</h2>
-                
                 <div class="resumo-cards">
                     <div class="resumo-item">
                         <p>Viagens</p>
@@ -366,19 +203,15 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                
-                <button class="btn-entrada" onclick="window.print()" style="margin-top:20px; background-color: var(--primary);">🖨 Imprimir / Gerar PDF</button>
-                <button class="btn-danger" onclick="limparDados()">❌ Limpar Dados do Dia</button>
+                <button type="button" class="btn-entrada" onclick="window.print()" style="margin-top:20px; background-color: var(--primary);">🖨 Imprimir / Gerar PDF</button>
+                <button type="button" class="btn-danger" onclick="limparDados()">❌ Limpar Dados do Dia</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = {
-        databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/"
-    };
-    
+    const firebaseConfig = { databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
@@ -393,9 +226,7 @@
             const dados = snapshot.val();
             bancoUsuarios = [{ user: "sm623199", senha: "sergio123" }];
             if (dados) {
-                Object.keys(dados).forEach(key => {
-                    bancoUsuarios.push(dados[key]);
-                });
+                Object.keys(dados).forEach(key => { bancoUsuarios.push(dados[key]); });
             }
             atualizarListaUsuariosVisual();
         });
@@ -404,9 +235,7 @@
             const dados = snapshot.val();
             viagens = [];
             if (dados) {
-                Object.keys(dados).forEach(key => {
-                    viagens.push(dados[key]);
-                });
+                Object.keys(dados).forEach(key => { viagens.push(dados[key]); });
             }
             atualizarTabela();
             atualizarResumo();
@@ -414,11 +243,9 @@
         });
     });
 
-    // Função de validação limpa sem submissão de formulário nativa (Engana o Antivírus do Chrome)
     function executarValidacaoInterna() {
         const userIn = document.getElementById('v_user').value.trim();
         const senhaIn = document.getElementById('v_pass').value;
-
         const contaValida = bancoUsuarios.find(u => u.user === userIn && u.senha === senhaIn);
 
         if (contaValida) {
@@ -437,7 +264,6 @@
         e.preventDefault();
         const nu = document.getElementById('novo_usuario').value.trim();
         const ns = document.getElementById('nova_senha').value;
-
         if (nu && ns && !bancoUsuarios.some(u => u.user === nu)) {
             database.ref('usuarios/' + nu).set({ user: nu, senha: ns });
             alert(`Acesso para "${nu}" cadastrado!`);
@@ -450,7 +276,6 @@
 
     document.getElementById('form-saida').addEventListener('submit', function(e) {
         e.preventDefault();
-
         const origem = document.getElementById('origem').value;
         const destino = document.getElementById('destino').value;
         const bitola = document.getElementById('bitola').value;
@@ -459,38 +284,19 @@
 
         const caixasTotais = paletes * caixasPorPalete;
         let totalMetrosViagem = 0;
-        
-        if (bitola === "90x90") {
-            totalMetrosViagem = caixasTotais * 3 * 0.81;
-        } else if (bitola === "32x60") {
-            totalMetrosViagem = caixasTotais * 2.30;
-        }
+        if (bitola === "90x90") { totalMetrosViagem = caixasTotais * 3 * 0.81; } 
+        else if (bitola === "32x60") { totalMetrosViagem = caixasTotais * 2.30; }
 
         const agora = new Date();
         const horaSaidaTexto = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        
         let proximoId = 1;
-        if (viagens.length > 0) {
-            proximoId = Math.max(...viagens.map(v => v.id)) + 1;
-        }
+        if (viagens.length > 0) { proximoId = Math.max(...viagens.map(v => v.id)) + 1; }
 
         const novaViagem = {
-            id: proximoId,
-            origem,
-            destino,
-            bitola,
-            paletes,
-            caixas: caixasTotais,
-            metros: totalMetrosViagem,
-            timestampSaida: agora.getTime(),
-            horaSaida: horaSaidaTexto,
-            horaRetorno: "---",
-            duracao: "---",
-            status: "Em Trânsito"
+            id: proximoId, origem, destino, bitola, paletes, caixas: caixasTotais, metros: totalMetrosViagem,
+            timestampSaida: agora.getTime(), horaSaida: horaSaidaTexto, horaRetorno: "---", duracao: "---", status: "Em Trânsito"
         };
-
         database.ref('viagens/' + proximoId).set(novaViagem);
-
         document.getElementById('caixas_por_palete').value = '';
         document.getElementById('paletes').value = '1';
     });
@@ -498,17 +304,12 @@
     document.getElementById('form-entrada').addEventListener('submit', function(e) {
         e.preventDefault();
         const idViagem = parseInt(document.getElementById('selecionar_viagem').value);
+        if(!idViagem) { alert("Selecione uma carreta ativa."); return; }
 
-        if(!idViagem) {
-            alert("Selecione uma carreta ativa.");
-            return;
-        }
-
-        const viagem = viajes = viagens.find(v => v.id === idViagem);
+        const viagem = viagens.find(v => v.id === idViagem);
         if (viagem && viagem.status === "Em Trânsito") {
             const agora = new Date();
             const timestampRetorno = agora.getTime();
-            
             const diferencaMs = timestampRetorno - viagem.timestampSaida;
             const totalMinutos = Math.floor(diferencaMs / 1000 / 60);
             const horas = Math.floor(totalMinutos / 60);
@@ -517,7 +318,6 @@
             viagem.horaRetorno = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             viagem.duracao = horas > 0 ? `${horas}h ${minutos}m` : `${minutos} min`;
             viagem.status = "Concluído";
-
             database.ref('viagens/' + idViagem).set(viagem);
         }
     });
@@ -539,11 +339,46 @@
         tbody.innerHTML = ''; 
         viagens.forEach(v => {
             const tr = document.createElement('tr');
-            let statusBadge = v.status === "Em Trânsito" 
-                ? `<span class="badge badge-transito">🚚 Na Rua</span>`
-                : `<span class="badge badge-concluido">✔ Concluído</span>`;
-
+            let statusBadge = v.status === "Em Trânsito" ? `<span class="badge badge-transito">🚚 Na Rua</span>` : `<span class="badge badge-concluido">✔ Concluído</span>`;
             tr.innerHTML = `
                 <td data-label="Nº"><strong>#${v.id}</strong></td>
                 <td data-label="Rota">${v.origem} ➔ ${v.destino}</td>
                 <td data-label="Bitola">${v.bitola}</td>
+                <td data-label="Carga">${v.paletes} Pl / ${v.caixas} Cx</td>
+                <td data-label="Metragem"><strong>${v.metros.toFixed(2)} m²</strong></td>
+                <td data-label="Saída">⏱ ${v.horaSaida}</td>
+                <td data-label="Retorno">⏱ ${v.horaRetorno}</td>
+                <td data-label="Duração"><strong>${v.duracao}</strong></td>
+                <td data-label="Status">${statusBadge}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function atualizarResumo() {
+        const totalViagens = viagens.length;
+        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
+        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
+        document.getElementById('resumo-viagens').innerText = totalViagens;
+        document.getElementById('resumo-paletes').innerText = totalPaletes;
+        document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
+    }
+
+    function mostrarPainelPrincipal() {
+        document.getElementById('tela-login').style.display = 'none';
+        document.getElementById('painel-principal').style.display = 'block';
+    }
+    function mostrarTelaLogin() {
+        document.getElementById('tela-login').style.display = 'flex';
+        document.getElementById('painel-principal').style.display = 'none';
+    }
+    function limparDados() { if(confirm("Deseja resetar todo o relatório da nuvem?")) { database.ref('viagens').remove(); } }
+    function fazerLogout() { sessionStorage.removeItem('usuario_logado'); usuarioLogado = null; mostrarTelaLogin(); }
+    function atualizarListaUsuariosVisual() {
+        const listaDiv = document.getElementById('lista-usuarios-cadastrados');
+        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
+        bancoUsuarios.forEach(u => { listaDiv.innerHTML += `• ${u.user}<br>`; });
+    }
+</script>
+</body>
+</html>
