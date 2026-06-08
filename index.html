@@ -17,7 +17,6 @@
             --card-bg: #ffffff;
             --text: #2d3748;
             --border: #e2e8f0;
-            --whatsapp: #25D366;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -46,8 +45,6 @@
         button { width: 100%; padding: 15px; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
         .btn-saida { background-color: var(--warning); }
         .btn-entrada { background-color: var(--success); }
-        .btn-whatsapp { background-color: var(--whatsapp); color: white; margin-top: 20px; }
-        .btn-whatsapp:hover { background-color: #1ebd59; }
         .btn-danger { background-color: #e2e8f0; color: #4a5568; margin-top: 12px; font-size: 0.9rem; padding: 12px; }
         .btn-logout { background-color: #e2e8f0; color: #4a5568; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; margin-top: 10px; width: auto; display: inline-block; }
 
@@ -206,7 +203,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                <button type="button" class="btn-whatsapp" onclick="enviarRelatorioWhatsApp()">🟢 Enviar Relatório via WhatsApp</button>
+                <button type="button" class="btn-entrada" onclick="window.print()" style="margin-top:20px; background-color: var(--primary);">🖨 Imprimir / Gerar PDF</button>
                 <button type="button" class="btn-danger" onclick="limparDados()">❌ Limpar Dados do Dia</button>
             </div>
         </div>
@@ -361,42 +358,27 @@
     function atualizarResumo() {
         const totalViagens = viagens.length;
         const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
-        const totalMetros = viajes.reduce((acc, v) => acc + v.metros, 0);
+        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
         document.getElementById('resumo-viagens').innerText = totalViagens;
         document.getElementById('resumo-paletes').innerText = totalPaletes;
         document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
     }
 
-    // NOVA FUNÇÃO DO WHATSAPP - SEGURA PARA DISPOSITIVOS MOBILE
-    function enviarRelatorioWhatsApp() {
-        if (viagens.length === 0) {
-            alert("Nenhuma movimentação registrada hoje para gerar relatório!");
-            return;
-        }
-
-        const dataHoje = new Date().toLocaleDateString('pt-BR');
-        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
-        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
-
-        // Monta o cabeçalho do texto
-        let texto = `📊 *RELATÓRIO DIÁRIO DE EXPEDIÇÃO - ${dataHoje}*\n`;
-        texto += `-----------------------------------------\n`;
-        texto += `🚚 *Total de Viagens:* ${viagens.length}\n`;
-        texto += `📦 *Total de Paletes:* ${totalPaletes} Pl\n`;
-        texto += `📐 *Metragem Total:* ${totalMetros.toFixed(2)} m²\n`;
-        texto += `-----------------------------------------\n\n`;
-        texto += `📋 *DETALHAMENTO DAS MOVIMENTAÇÕES:*\n`;
-
-        // Passa por cada viagem montando a lista
-        viagens.forEach(v => {
-            const statusIcon = v.status === "Em Trânsito" ? "🚚" : "✅";
-            texto += `*Viagem #${v.id}* [${statusIcon} ${v.status}]\n`;
-            texto += `• Rota: ${v.origem} ➔ ${v.destino}\n`;
-            texto += `• Carga: ${v.paletes} Pl / ${v.caixas} Cx (${v.bitola})\n`;
-            texto += `• Medida: ${v.metros.toFixed(2)} m²\n`;
-            texto += `• Saída: ${v.horaSaida} | Retorno: ${v.horaRetorno} (${v.duracao})\n`;
-            texto += `\n`;
-        });
-
-        // Converte o texto para formato de link seguro URL
-        const linkUrl = "https://api.whatsapp.
+    function mostrarPainelPrincipal() {
+        document.getElementById('tela-login').style.display = 'none';
+        document.getElementById('painel-principal').style.display = 'block';
+    }
+    function mostrarTelaLogin() {
+        document.getElementById('tela-login').style.display = 'flex';
+        document.getElementById('painel-principal').style.display = 'none';
+    }
+    function limparDados() { if(confirm("Deseja resetar todo o relatório da nuvem?")) { database.ref('viagens').remove(); } }
+    function fazerLogout() { sessionStorage.removeItem('usuario_logado'); usuarioLogado = null; mostrarTelaLogin(); }
+    function atualizarListaUsuariosVisual() {
+        const listaDiv = document.getElementById('lista-usuarios-cadastrados');
+        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
+        bancoUsuarios.forEach(u => { listaDiv.innerHTML += `• ${u.user}<br>`; });
+    }
+</script>
+</body>
+</html>
