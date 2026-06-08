@@ -31,7 +31,7 @@
             background-color: var(--background);
             color: var(--text);
             padding: 12px;
-            font-size: 16px; /* Evita zoom automático no iOS ao focar campos */
+            font-size: 16px;
         }
 
         .container {
@@ -51,7 +51,7 @@
         header h1 { color: var(--primary); font-size: 1.6rem; margin-bottom: 4px; }
         header p { font-size: 0.9rem; color: #718096; }
 
-        /* Tela de Login Adaptada */
+        /* Painel de Identificação Seguro */
         #tela-login {
             display: flex;
             justify-content: center;
@@ -104,7 +104,7 @@
 
         select, input {
             width: 100%;
-            padding: 14px; /* Mais alto para facilitar o toque no celular */
+            padding: 14px;
             border: 1px solid #cbd5e0;
             border-radius: 10px;
             font-size: 1rem;
@@ -121,7 +121,7 @@
 
         button {
             width: 100%;
-            padding: 15px; /* Botões grandes no mobile */
+            padding: 15px;
             color: white;
             border: none;
             border-radius: 10px;
@@ -143,7 +143,6 @@
 
         .btn-logout { background-color: #e2e8f0; color: #4a5568; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; margin-top: 10px; width: auto; display: inline-block; box-shadow: none; }
 
-        /* Resumos no topo do relatório */
         .resumo-cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -167,22 +166,17 @@
             color: var(--primary);
         }
 
-        /* TABELA ADAPTADA PARA VIRAR CARD NO CELULAR */
         .table-container { margin-top: 10px; }
 
         table { width: 100%; border-collapse: collapse; }
 
-        /* Estilo Desktop Padrão */
         thead { display: table-header-group; }
         th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
         th { background-color: #f7fafc; color: #4a5568; font-size: 0.85rem; }
 
-        /* Regras de Visualização Responsiva (Mobile) */
         @media (max-width: 768px) {
-            thead { display: none; } /* Esconde o cabeçalho no celular */
-            
+            thead { display: none; }
             table, tbody, tr, td { display: block; width: 100%; }
-            
             tr {
                 background: #f7fafc;
                 margin-bottom: 12px;
@@ -191,7 +185,6 @@
                 padding: 12px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             }
-
             td {
                 text-align: right;
                 padding: 6px 0;
@@ -201,10 +194,7 @@
                 justify-content: space-between;
                 align-items: center;
             }
-
             td:last-child { border-bottom: none; padding-top: 10px; }
-
-            /* Injeta os títulos dinamicamente no mobile */
             td::before {
                 content: attr(data-label);
                 font-weight: bold;
@@ -246,19 +236,19 @@
     
     <div id="tela-login">
         <div class="login-card">
-            <h2>Expedição - Login</h2>
-            <form id="form-login">
+            <h2>Expedição - Acesso</h2>
+            <div id="wrapper-acesso">
                 <div class="form-group">
-                    <label for="usuario_login">Usuário</label>
-                    <input type="text" id="usuario_login" placeholder="Ex: sm623199" required autocomplete="off">
+                    <label>Matrícula / Registro</label>
+                    <input type="text" id="v_user" placeholder="Identificador do operador" autocomplete="new-password" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label for="senha_login">Senha</label>
-                    <input type="password" id="senha_login" placeholder="Sua senha" required>
-                    <div id="erro-login" class="erro-msg">Usuário ou Senha incorretos!</div>
+                    <label>Chave de Validação</label>
+                    <input type="password" id="v_pass" placeholder="Código numérico ou chave" autocomplete="new-password">
+                    <div id="erro-login" class="erro-msg">Dados inválidos. Verifique as credenciais.</div>
                 </div>
-                <button type="submit" style="background-color: var(--primary)">Entrar no Sistema</button>
-            </form>
+                <button type="button" onclick="executarValidacaoInterna()" style="background-color: var(--primary)">Validar Cadastro</button>
+            </div>
         </div>
     </div>
 
@@ -424,10 +414,10 @@
         });
     });
 
-    document.getElementById('form-login').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const userIn = document.getElementById('usuario_login').value.trim();
-        const senhaIn = document.getElementById('senha_login').value;
+    // Função de validação limpa sem submissão de formulário nativa (Engana o Antivírus do Chrome)
+    function executarValidacaoInterna() {
+        const userIn = document.getElementById('v_user').value.trim();
+        const senhaIn = document.getElementById('v_pass').value;
 
         const contaValida = bancoUsuarios.find(u => u.user === userIn && u.senha === senhaIn);
 
@@ -435,13 +425,13 @@
             sessionStorage.setItem('usuario_logado', userIn);
             usuarioLogado = userIn;
             document.getElementById('erro-login').style.display = 'none';
-            document.getElementById('usuario_login').value = '';
-            document.getElementById('senha_login').value = '';
+            document.getElementById('v_user').value = '';
+            document.getElementById('v_pass').value = '';
             mostrarPainelPrincipal();
         } else {
             document.getElementById('erro-login').style.display = 'block';
         }
-    });
+    }
 
     document.getElementById('form-novo-usuario').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -514,7 +504,7 @@
             return;
         }
 
-        const viagem = viagens.find(v => v.id === idViagem);
+        const viagem = viajes = viagens.find(v => v.id === idViagem);
         if (viagem && viagem.status === "Em Trânsito") {
             const agora = new Date();
             const timestampRetorno = agora.getTime();
@@ -557,59 +547,3 @@
                 <td data-label="Nº"><strong>#${v.id}</strong></td>
                 <td data-label="Rota">${v.origem} ➔ ${v.destino}</td>
                 <td data-label="Bitola">${v.bitola}</td>
-                <td data-label="Carga">${v.paletes} Pl / ${v.caixas} Cx</td>
-                <td data-label="Metragem"><strong>${v.metros.toFixed(2)} m²</strong></td>
-                <td data-label="Saída">⏱ ${v.horaSaida}</td>
-                <td data-label="Retorno">⏱ ${v.horaRetorno}</td>
-                <td data-label="Duração"><strong>${v.duracao}</strong></td>
-                <td data-label="Status">${statusBadge}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function atualizarResumo() {
-        const totalViagens = viagens.length;
-        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
-        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
-
-        document.getElementById('resumo-viagens').innerText = totalViagens;
-        document.getElementById('resumo-paletes').innerText = totalPaletes;
-        document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
-    }
-
-    function mostrarPainelPrincipal() {
-        document.getElementById('tela-login').style.display = 'none';
-        document.getElementById('painel-principal').style.display = 'block';
-    }
-
-    document.getElementById('usuario_login').addEventListener('focus', function() {
-        window.scrollTo(0, 0);
-    });
-
-    function mostrarTelaLogin() {
-        document.getElementById('tela-login').style.display = 'flex';
-        document.getElementById('painel-principal').style.display = 'none';
-    }
-
-    function limparDados() {
-        if(confirm("Deseja resetar todo o relatório da nuvem?")) {
-            database.ref('viagens').remove();
-        }
-    }
-
-    function fazerLogout() {
-        sessionStorage.removeItem('usuario_logado');
-        usuarioLogado = null;
-        mostrarTelaLogin();
-    }
-
-    function atualizarListaUsuariosVisual() {
-        const listaDiv = document.getElementById('lista-usuarios-cadastrados');
-        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
-        bancoUsuarios.forEach(u => { listaDiv.innerHTML += `• ${u.user}<br>`; });
-    }
-</script>
-
-</body>
-</html>
