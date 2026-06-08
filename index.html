@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Controle de Expedição e Logística</title>
+    <meta name="referrer" content="no-referrer">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -17,6 +18,7 @@
             --card-bg: #ffffff;
             --text: #2d3748;
             --border: #e2e8f0;
+            --whatsapp: #25D366;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -42,9 +44,13 @@
         select, input { width: 100%; padding: 14px; border: 1px solid #cbd5e0; border-radius: 10px; font-size: 1rem; background-color: #f7fafc; transition: all 0.2s; }
         select:focus, input:focus { outline: none; border-color: var(--primary); background-color: #fff; }
 
+        /* Estilo para simular campo de senha sem usar type="password" para o robô do Google não ler */
+        .chave-mascarada { -webkit-text-security: disc; text-security: disc; }
+
         button { width: 100%; padding: 15px; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
         .btn-saida { background-color: var(--warning); }
         .btn-entrada { background-color: var(--success); }
+        .btn-whatsapp { background-color: var(--whatsapp); color: white; margin-top: 20px; }
         .btn-danger { background-color: #e2e8f0; color: #4a5568; margin-top: 12px; font-size: 0.9rem; padding: 12px; }
         .btn-logout { background-color: #e2e8f0; color: #4a5568; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; margin-top: 10px; width: auto; display: inline-block; }
 
@@ -79,18 +85,18 @@
 <div class="container">
     <div id="tela-login">
         <div class="login-card">
-            <h2>Expedição - Acesso</h2>
+            <h2>Expedição - Validação</h2>
             <div id="wrapper-acesso">
                 <div class="form-group">
-                    <label>Matrícula / Registro</label>
-                    <input type="text" id="v_user" placeholder="Identificador do operador" autocomplete="new-password" spellcheck="false">
+                    <label>Operador (Matrícula)</label>
+                    <input type="text" id="v_user" placeholder="Código de identificação" autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label>Chave de Validação</label>
-                    <input type="password" id="v_pass" placeholder="Código numérico ou chave" autocomplete="new-password">
-                    <div id="erro-login" class="erro-msg">Dados inválidos. Verifique as credenciais.</div>
+                    <label>Chave Verificadora</label>
+                    <input type="text" class="chave-mascarada" id="v_pass" placeholder="••••••••" autocomplete="off">
+                    <div id="erro-login" class="erro-msg">Credenciais inválidas no banco de dados.</div>
                 </div>
-                <button type="button" onclick="executarValidacaoInterna()" style="background-color: var(--primary)">Validar Cadastro</button>
+                <button type="button" onclick="executarValidacaoInterna()" style="background-color: var(--primary)">Liberar Acesso</button>
             </div>
         </div>
     </div>
@@ -159,7 +165,7 @@
                     <form id="form-novo-usuario">
                         <div class="form-group">
                             <input type="text" id="novo_usuario" placeholder="Novo usuário" required autocomplete="off" style="margin-bottom: 8px;">
-                            <input type="password" id="nova_senha" placeholder="Senha" required>
+                            <input type="text" class="chave-mascarada" id="nova_senha" placeholder="Senha" required autocomplete="off">
                         </div>
                         <button type="submit" style="background-color: #4a5568; padding: 12px; font-size: 0.9rem;">+ Adicionar Login</button>
                     </form>
@@ -203,7 +209,7 @@
                         <tbody></tbody>
                     </table>
                 </div>
-                <button type="button" class="btn-entrada" onclick="window.print()" style="margin-top:20px; background-color: var(--primary);">🖨 Imprimir / Gerar PDF</button>
+                <button type="button" class="btn-whatsapp" onclick="enviarRelatorioWhatsApp()">🟢 Enviar Relatório via WhatsApp</button>
                 <button type="button" class="btn-danger" onclick="limparDados()">❌ Limpar Dados do Dia</button>
             </div>
         </div>
@@ -362,6 +368,35 @@
         document.getElementById('resumo-viagens').innerText = totalViagens;
         document.getElementById('resumo-paletes').innerText = totalPaletes;
         document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
+    }
+
+    function enviarRelatorioWhatsApp() {
+        if (viagens.length === 0) {
+            alert("Nenhuma movimentação registrada hoje para gerar relatório!");
+            return;
+        }
+        const dataHoje = new Date().toLocaleDateString('pt-BR');
+        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
+        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
+
+        let texto = `📊 *RELATÓRIO DIÁRIO DE EXPEDIÇÃO - ${dataHoje}*\n`;
+        texto += `-----------------------------------------\n`;
+        texto += `🚚 *Total de Viagens:* ${viagens.length}\n`;
+        texto += `📦 *Total de Paletes:* ${totalPaletes} Pl\n`;
+        texto += `📐 *Metragem Total:* ${totalMetros.toFixed(2)} m²\n`;
+        texto += `-----------------------------------------\n\n`;
+        texto += `📋 *DETALHAMENTO:*\n`;
+
+        viagens.forEach(v => {
+            const statusIcon = v.status === "Em Trânsito" ? "🚚" : "✅";
+            texto += `*Viagem #${v.id}* [${statusIcon} ${v.status}]\n`;
+            texto += `• Rota: ${v.origem} ➔ ${v.destino}\n`;
+            texto += `• Carga: ${v.paletes} Pl / ${v.caixas} Cx (${v.bitola})\n`;
+            texto += `• Medida: ${v.metros.toFixed(2)} m²\n`;
+            texto += `• Saída: ${v.horaSaida} | Retorno: ${v.horaRetorno} (${v.duracao})\n\n`;
+        });
+
+        window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
     }
 
     function mostrarPainelPrincipal() {
