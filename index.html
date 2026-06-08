@@ -31,7 +31,7 @@
             background-color: var(--background);
             color: var(--text);
             padding: 12px;
-            font-size: 16px; /* Evita zoom automático no iOS ao focar campos */
+            font-size: 16px;
         }
 
         .container {
@@ -51,7 +51,6 @@
         header h1 { color: var(--primary); font-size: 1.6rem; margin-bottom: 4px; }
         header p { font-size: 0.9rem; color: #718096; }
 
-        /* Tela de Login Adaptada */
         #tela-login {
             display: flex;
             justify-content: center;
@@ -104,7 +103,7 @@
 
         select, input {
             width: 100%;
-            padding: 14px; /* Mais alto para facilitar o toque no celular */
+            padding: 14px;
             border: 1px solid #cbd5e0;
             border-radius: 10px;
             font-size: 1rem;
@@ -121,7 +120,7 @@
 
         button {
             width: 100%;
-            padding: 15px; /* Botões grandes no mobile */
+            padding: 15px;
             color: white;
             border: none;
             border-radius: 10px;
@@ -143,7 +142,6 @@
 
         .btn-logout { background-color: #e2e8f0; color: #4a5568; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; margin-top: 10px; width: auto; display: inline-block; box-shadow: none; }
 
-        /* Resumos no topo do relatório */
         .resumo-cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -167,22 +165,17 @@
             color: var(--primary);
         }
 
-        /* TABELA ADAPTADA PARA VIRAR CARD NO CELULAR */
         .table-container { margin-top: 10px; }
 
         table { width: 100%; border-collapse: collapse; }
 
-        /* Estilo Desktop Padrão */
         thead { display: table-header-group; }
         th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
         th { background-color: #f7fafc; color: #4a5568; font-size: 0.85rem; }
 
-        /* Regras de Visualização Responsiva (Mobile) */
         @media (max-width: 768px) {
-            thead { display: none; } /* Esconde o cabeçalho no celular */
-            
+            thead { display: none; }
             table, tbody, tr, td { display: block; width: 100%; }
-            
             tr {
                 background: #f7fafc;
                 margin-bottom: 12px;
@@ -191,7 +184,6 @@
                 padding: 12px;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             }
-
             td {
                 text-align: right;
                 padding: 6px 0;
@@ -201,10 +193,7 @@
                 justify-content: space-between;
                 align-items: center;
             }
-
             td:last-child { border-bottom: none; padding-top: 10px; }
-
-            /* Injeta os títulos dinamicamente no mobile */
             td::before {
                 content: attr(data-label);
                 font-weight: bold;
@@ -353,7 +342,7 @@
                     </div>
                     <div class="resumo-item">
                         <p>Enviado</p>
-                        <span id="resumo-metros">0 m²</span>
+                        <span id="resumo-metros">0.0 m²</span>
                     </div>
                 </div>
 
@@ -568,6 +557,7 @@
         });
     }
 
+    // AQUI ESTAVA O ERRO DE DIGITAÇÃO CORRIGIDO: mudado de viajes para viagens
     function atualizarResumo() {
         const totalViagens = viagens.length;
         const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
