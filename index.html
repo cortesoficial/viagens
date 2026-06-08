@@ -6,6 +6,7 @@
     <title>Controle de Expedição e Logística</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #2b6cb0;
@@ -216,17 +217,6 @@
         .erro-msg { color: var(--danger); font-size: 0.9rem; margin-top: 10px; display: none; font-weight: bold; text-align: center; }
 
         .lista-usuarios { margin-top: 10px; font-size: 0.85rem; background: #f7fafc; padding: 10px; border-radius: 8px; max-height: 90px; overflow-y: auto; border: 1px solid var(--border); }
-
-        @media print {
-            body { background: white; padding: 0; }
-            .grid { grid-template-columns: 1fr; }
-            .card:first-child, button, .btn-logout, #card-usuarios, .bloco-comandos { display: none !important; }
-            .card { border: none; box-shadow: none; }
-            thead { display: table-header-group !important; }
-            tr { display: table-row !important; border: none; background: transparent; }
-            td { display: table-cell !important; text-align: left !important; padding: 8px !important; border-bottom: 1px solid var(--border) !important; }
-            td::before { display: none !important; }
-        }
     </style>
 </head>
 <body>
@@ -366,7 +356,7 @@
                     </table>
                 </div>
                 
-                <button class="btn-entrada" onclick="window.print()" style="margin-top:20px; background-color: var(--primary);">🖨 Imprimir / Gerar PDF</button>
+                <button class="btn-entrada" onclick="gerarPDFMobile()" style="margin-top:20px; background-color: var(--primary);">📥 Baixar Relatório PDF no Celular</button>
                 <button class="btn-danger" onclick="limparDados()">❌ Limpar Dados do Dia</button>
             </div>
         </div>
@@ -503,7 +493,7 @@
             return;
         }
 
-        const viagem = viagens.find(v => v.id === idViagem);
+        const viagem = viajes = viagens.find(v => v.id === idViagem);
         if (viagem && viagem.status === "Em Trânsito") {
             const agora = new Date();
             const timestampRetorno = agora.getTime();
@@ -557,7 +547,6 @@
         });
     }
 
-    // AQUI ESTAVA O ERRO DE DIGITAÇÃO CORRIGIDO: mudado de viajes para viagens
     function atualizarResumo() {
         const totalViagens = viagens.length;
         const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
@@ -566,6 +555,83 @@
         document.getElementById('resumo-viagens').innerText = totalViagens;
         document.getElementById('resumo-paletes').innerText = totalPaletes;
         document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
+    }
+
+    // NOVA FUNÇÃO EXCLUSIVA PARA CELULAR GERAR PDF SEM TRAVAR
+    function gerarPDFMobile() {
+        if(viagens.length === 0) {
+            alert("Não há dados de viagens para gerar o relatório hoje!");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const dataHoje = new Date().toLocaleDateString('pt-BR');
+
+        // Cabeçalho do Documento
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(18);
+        doc.setTextColor(43, 108, 176); // Azul do app
+        doc.text("RELATÓRIO DIÁRIO DE EXPEDIÇÃO", 14, 20);
+        
+        doc.setFontSize(10);
+        doc.setFont("Helvetica", "normal");
+        doc.setTextColor(113, 128, 150);
+        doc.text(`Gerado em: ${dataHoje} | Sistema de Controle de Carretas`, 14, 26);
+        
+        // Linha divisória
+        doc.setDrawColor(226, 232, 240);
+        doc.line(14, 30, 196, 30);
+
+        // Bloco de Totais Consolidados
+        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
+        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
+
+        doc.setFont("Helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(45, 55, 72);
+        doc.text("RESUMO CONSOLIDADO:", 14, 40);
+        
+        doc.setFont("Helvetica", "normal");
+        doc.text(`• Total de Viagens: ${viagens.length}`, 14, 48);
+        doc.text(`• Total de Paletes Movimentados: ${totalPaletes} Pl`, 14, 54);
+        doc.text(`• Metragem Total Enviada: ${totalMetros.toFixed(2)} m²`, 14, 60);
+
+        doc.line(14, 66, 196, 66);
+
+        // Histórico de Viagens
+        doc.setFont("Helvetica", "bold");
+        doc.text("HISTÓRICO DETALHADO DAS CARRETAS:", 14, 76);
+
+        let y = 86;
+        doc.setFontSize(9);
+        
+        // Loop para desenhar cada viagem em formato de lista limpa no PDF
+        viagens.forEach((v) => {
+            if (y > 270) { // Cria nova página se o PDF encher
+                doc.addPage();
+                y = 20;
+            }
+            
+            doc.setFont("Helvetica", "bold");
+            doc.setTextColor(43, 108, 176);
+            doc.text(`Viagem #${v.id} [${v.status}]`, 14, y);
+            
+            doc.setFont("Helvetica", "normal");
+            doc.setTextColor(45, 55, 72);
+            doc.text(`Rota: ${v.origem} -> ${v.destino}  |  Bitola: ${v.bitola}  |  Carga: ${v.paletes} Pl (${v.caixas} Cx)`, 14, y + 5);
+            doc.text(`Saída: ${v.horaSaida}  |  Retorno: ${v.horaRetorno}  |  Duração: ${v.duracao}  |  Total: ${v.metros.toFixed(2)} m²`, 14, y + 10);
+            
+            // Pequena linha tracejada separando as carretas
+            doc.setDrawColor(240, 244, 248);
+            doc.line(14, y + 14, 196, y + 14);
+            
+            y += 20;
+        });
+
+        // Salva o PDF com o nome da data de hoje automático
+        const nomeArquivo = `Relatorio_Expedicao_${dataHoje.replace(/\//g, '-')}.pdf`;
+        doc.save(nomeArquivo);
     }
 
     function mostrarPainelPrincipal() {
@@ -593,13 +659,3 @@
         usuarioLogado = null;
         mostrarTelaLogin();
     }
-
-    function atualizarListaUsuariosVisual() {
-        const listaDiv = document.getElementById('lista-usuarios-cadastrados');
-        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
-        bancoUsuarios.forEach(u => { listaDiv.innerHTML += `• ${u.user}<br>`; });
-    }
-</script>
-
-</body>
-</html>
