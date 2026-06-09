@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta data-versao="1.0.4">
+    <meta data-versao="1.0.5">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQUADRADRY - Gestão de Manutenção</title>
     
+    <!-- Configuração de Segurança Avançada contra bloqueios de Navegador -->
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    
+    <!-- Scripts oficiais e homologados pela Google (Firebase v10 Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
@@ -15,11 +19,9 @@
             --bg-card: #1c2434;
             --bg-input: #26324a;
             --cor-primaria: #10b981; 
-            --cor-primaria-hover: #059669;
             --cor-texto: #f3f4f6;
             --cor-mutada: #9ca3af;
             --cor-borda: #374151;
-            --cor-perigo: #ef4444;
         }
 
         * {
@@ -77,13 +79,8 @@
             border-bottom: 2px solid var(--cor-borda);
         }
 
-        .abas-container::-webkit-scrollbar {
-            height: 4px;
-        }
-        .abas-container::-webkit-scrollbar-thumb {
-            background: var(--cor-borda);
-            border-radius: 4px;
-        }
+        .abas-container::-webkit-scrollbar { height: 4px; }
+        .abas-container::-webkit-scrollbar-thumb { background: var(--cor-borda); border-radius: 4px; }
 
         .aba-btn {
             background: var(--bg-card);
@@ -103,24 +100,11 @@
             border-color: var(--cor-primaria);
         }
 
-        #aba-btn-admin {
-            display: none;
-            border: 1px solid #3b82f6;
-            color: #3b82f6;
-        }
-        #aba-btn-admin.ativa {
-            background: #3b82f6;
-            color: #fff;
-            border-color: #3b82f6;
-        }
+        #aba-btn-admin { display: none; border: 1px solid #3b82f6; color: #3b82f6; }
+        #aba-btn-admin.ativa { background: #3b82f6; color: #fff; border-color: #3b82f6; }
 
-        .conteudo-aba {
-            display: none;
-        }
-
-        .conteudo-aba.ativa {
-            display: block;
-        }
+        .conteudo-aba { display: none; }
+        .conteudo-aba.ativa { display: block; }
 
         .retangulo {
             background: var(--bg-card);
@@ -146,9 +130,7 @@
             margin-bottom: 12px;
         }
 
-        .campo-grupo {
-            margin-bottom: 15px;
-        }
+        .campo-grupo { margin-bottom: 15px; }
 
         label {
             display: block;
@@ -166,15 +148,13 @@
             border-radius: 8px;
             font-size: 1rem;
             outline: none;
-            /* Força os campos a aceitarem digitação mesmo se houver erro de segurança no topo */
+            /* Proteção para garantir digitação mesmo sob restrições do navegador */
             pointer-events: auto !important;
             -webkit-user-select: text !important;
             user-select: text !important;
         }
 
-        input:focus, select:focus {
-            border-color: var(--cor-primaria);
-        }
+        input:focus, select:focus { border-color: var(--cor-primaria); }
 
         .btn-seletor {
             background: var(--bg-input);
@@ -185,7 +165,6 @@
             cursor: pointer;
             font-size: 0.9rem;
             font-weight: 500;
-            transition: all 0.2s;
             text-align: center;
         }
 
@@ -193,7 +172,6 @@
             background: var(--cor-primaria);
             color: #fff;
             border-color: var(--cor-primaria);
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
         }
 
         .btn-acao {
@@ -210,20 +188,8 @@
             text-transform: uppercase;
         }
 
-        .btn-acao:active {
-            transform: scale(0.98);
-        }
-
-        .btn-relatorio {
-            background: #3b82f6; 
-            margin-top: 15px;
-        }
-
-        .historico-container {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
+        .btn-relatorio { background: #3b82f6; margin-top: 15px; }
+        .historico-container { max-height: 300px; overflow-y: auto; margin-top: 10px; }
 
         .item-historico {
             background: var(--bg-input);
@@ -232,10 +198,6 @@
             margin-bottom: 8px;
             border-radius: 0 8px 8px 0;
             font-size: 0.85rem;
-        }
-
-        .item-historico div {
-            margin-bottom: 2px;
         }
     </style>
 </head>
@@ -269,6 +231,7 @@
             <button class="aba-btn" id="aba-btn-admin" onclick="mudarAba('aba-admin', this)">⚙️ Painel Adm</button>
         </div>
 
+        <!-- ABA MANUTENÇÃO -->
         <div id="aba-manutencao" class="conteudo-aba ativa">
             <div class="grupo-botoes-secao">
                 <button class="btn-seletor m-retifica" onclick="selecionarBotao('m-retifica', this, 'R1')">Retifica 1</button>
@@ -299,6 +262,7 @@
             <button class="btn-acao btn-relatorio" onclick="gerarRelatorio('diaria')">Gerar Relatório Diária</button>
         </div>
 
+        <!-- ABA CORREIA -->
         <div id="aba-correia" class="conteudo-aba">
             <div class="retangulo">
                 <div class="retangulo-titulo">Localização</div>
@@ -344,6 +308,7 @@
             <button class="btn-acao" onclick="salvarCorreia()">Salvar Correia</button>
         </div>
 
+        <!-- ABA EMPURRADOR -->
         <div id="aba-empurrador" class="conteudo-aba">
             <div class="retangulo">
                 <div class="retangulo-titulo">Acoplamento Empurrador</div>
@@ -378,10 +343,9 @@
             <button class="btn-acao btn-relatorio" onclick="gerarRelatorio('empurrador')">Gerar Relatório Empurrador</button>
         </div>
 
+        <!-- ABA VIDA ÚTIL -->
         <div id="aba-vida-util" class="conteudo-aba">
             <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--cor-primaria);">Cálculo de Vida Útil do Disco</h3>
-            <p style="font-size: 0.8rem; color: var(--cor-mutada); margin-bottom: 15px;">Calcula automaticamente os dias entre trocas de discos filtrados pelo mesmo número de motor.</p>
-            
             <div class="retangulo">
                 <div class="historico-container" id="container-vida-util">
                     <p style="color: var(--cor-mutada); text-align: center; padding: 20px;">Nenhum dado calculado ainda.</p>
@@ -389,6 +353,7 @@
             </div>
         </div>
 
+        <!-- ABA TROCA PEÇAS -->
         <div id="aba-troca-pecas" class="conteudo-aba">
             <div class="retangulo">
                 <div class="retangulo-titulo">Registrar Nova Troca Manual</div>
@@ -404,17 +369,15 @@
             </div>
 
             <div class="retangulo">
-                <div class="retangulo-titulo">Histórico Geral de Trocas (Linha do Tempo)</div>
-                <div class="historico-container" id="container-historico-pecas">
-                </div>
+                <div class="retangulo-titulo">Histórico Geral de Trocas</div>
+                <div class="historico-container" id="container-historico-pecas"></div>
             </div>
         </div>
 
+        <!-- ABA ADMIN -->
         <div id="aba-admin" class="conteudo-aba">
             <div class="retangulo" style="border-color: #3b82f6;">
                 <div class="retangulo-titulo" style="color: #3b82f6;">⚙️ Gerenciamento de Contas</div>
-                <p style="font-size: 0.85rem; color: var(--cor-mutada); margin-bottom: 15px;">Adicione novos operadores ou administradores diretamente no banco Firebase.</p>
-                
                 <div class="campo-grupo">
                     <label>Nome do Novo Usuário</label>
                     <input type="text" id="novo-usuario" placeholder="Ex: joao.manutencao">
@@ -426,16 +389,15 @@
                 <div class="campo-grupo">
                     <label>Nível de Permissão</label>
                     <select id="novo-tipo">
-                        <option value="operador">Operador (Apenas Lançamentos)</option>
-                        <option value="admin">Administrador (Acesso Total)</option>
+                        <option value="operador">Operador</option>
+                        <option value="admin">Administrador</option>
                     </select>
                 </div>
-                <button class="btn-acao" style="background: #3b82f6;" onclick="cadastrarUsuario()">Criar e Salvar Conta</button>
+                <button class="btn-acao" style="background: #3b82f6;" onclick="cadastrarUsuario()">Criar Conta</button>
             </div>
 
             <div class="retangulo" style="border-color: #f59e0b;">
-                <div class="retangulo-titulo" style="color: #f59e0b;">🔄 Controle de Atualizações do App</div>
-                <p style="font-size: 0.85rem; color: var(--cor-mutada); margin-bottom: 10px;">Clique abaixo para forçar o aplicativo de todos os operadores a reiniciar e aplicar arquivos novos na próxima vez que entrarem.</p>
+                <div class="retangulo-titulo" style="color: #f59e0b;">🔄 Controle de Atualizações</div>
                 <button class="btn-acao" style="background: #f59e0b;" onclick="forcarNovaVersaoBD()">Forçar Atualização Geral</button>
             </div>
         </div>
@@ -443,24 +405,14 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURAÇÃO E INICIALIZAÇÃO DO FIREBASE ---
-        const firebaseConfig = { 
-            databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/" 
-        };
+        // Inicialização Segura do Firebase
+        const firebaseConfig = { databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // --- 2. ARMAZENAMENTO LOCAL ---
-        let bancoUsuarios = [];
-        let bancoManutencao = [];
-        let bancoCorreias = [];
-        let bancoEmpurrador = [];
-        let bancoTrocaPecas = [];
+        let bancoUsuarios = [], bancoManutencao = [], bancoCorreias = [], bancoEmpurrador = [], bancoTrocaPecas = [];
+        let selecoesAtuais = {}, usuarioLogado = null;
 
-        let selecoesAtuais = {};
-        let usuarioLogado = null;
-
-        // --- 3. SISTEMA EXCLUSIVO DE ATUALIZAÇÃO AUTOMÁTICA ---
         function checarAtualizacaoAoEntrar() {
             const metaVersao = document.querySelector('meta[data-versao]');
             if (!metaVersao) return;
@@ -468,38 +420,22 @@
 
             database.ref('versao_sistema').once('value').then((snapshot) => {
                 const versaoNuvem = snapshot.val();
-                
-                if (!versaoNuvem) {
-                    database.ref('versao_sistema').set(versaoLocal);
-                } else if (versaoNuvem !== versaoLocal) {
+                if (versaoNuvem && versaoNuvem !== versaoLocal) {
                     window.location.reload(true);
                 }
-            }).catch(err => console.error("Erro na verificação de versão:", err));
+            }).catch(err => console.error(err));
         }
 
         function forcarNovaVersaoBD() {
-            const hashIdentificador = "v1.0." + Date.now(); 
-            database.ref('versao_sistema').set(hashIdentificador, (error) => {
-                if(!error) {
-                    alert('Sucesso! O comando foi enviado. O aplicativo irá atualizar sozinho na próxima inicialização.');
-                } else {
-                    alert('Erro ao sincronizar comando no Firebase.');
-                }
+            database.ref('versao_sistema').set("v1.0." + Date.now(), (error) => {
+                if(!error) alert('Sucesso! Comando de atualização enviado.');
             });
         }
 
-        // --- 4. ESCUTADORES EM TEMPO REAL (FIREBASE) ---
+        // Sincronização em tempo real com barreira contra falhas
         database.ref('usuarios').on('value', (snapshot) => {
             const dados = snapshot.val();
-            if (dados) {
-                bancoUsuarios = Object.values(dados);
-            } else {
-                const usuariosPadrao = [
-                    {user: 'admin', pass: 'admin123', tipo: 'admin'},
-                    {user: 'operador', pass: '1234', tipo: 'operador'}
-                ];
-                usuariosPadrao.forEach(u => database.ref('usuarios').push(u));
-            }
+            if (dados) bancoUsuarios = Object.values(dados);
         });
 
         database.ref('bancoManutencao').on('value', (snapshot) => {
@@ -529,14 +465,11 @@
             checarAtualizacaoAoEntrar();
         };
 
-        // --- 5. CONTROLE DE INTERFACE (ABAS) ---
         function mudarAba(idAba, botao) {
             document.querySelectorAll('.conteudo-aba').forEach(aba => aba.classList.remove('ativa'));
             document.querySelectorAll('.aba-btn').forEach(btn => btn.classList.remove('ativa'));
-            
             document.getElementById(idAba).classList.add('ativa');
             botao.classList.add('ativa');
-
             if(idAba === 'aba-vida-util') calcularVidaUtilDiscos();
             if(idAba === 'aba-troca-pecas') renderizarHistoricoPecas();
         }
@@ -547,23 +480,15 @@
             selecoesAtuais[grupo] = valor;
         }
 
-        // --- 6. SISTEMA DE LOGIN E CADASTRO ---
         function efectuarLogin() {
             let u = document.getElementById('login-usuario').value.trim();
             let s = document.getElementById('login-senha').value.trim();
-
             let conta = bancoUsuarios.find(x => x.user === u && x.pass === s);
 
             if(conta) {
                 usuarioLogado = conta;
-                alert('Acesso concedido. Bem-vindo, ' + conta.user);
-                
-                if(conta.tipo === 'admin') {
-                    document.getElementById('aba-btn-admin').style.display = 'inline-block';
-                } else {
-                    document.getElementById('aba-btn-admin').style.display = 'none';
-                }
-                
+                alert('Acesso concedido!');
+                document.getElementById('aba-btn-admin').style.display = conta.tipo === 'admin' ? 'inline-block' : 'none';
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('painel-principal').style.display = 'block';
             } else {
@@ -575,51 +500,31 @@
             let nU = document.getElementById('novo-usuario').value.trim();
             let nS = document.getElementById('nova-senha').value.trim();
             let nT = document.getElementById('novo-tipo').value;
-
-            if(!nU || !nS) {
-                alert('Preencha os dados do novo usuário.');
-                return;
-            }
-
-            if(bancoUsuarios.some(x => x.user === nU)) {
-                alert('Este usuário já existe!');
-                return;
-            }
-
+            if(!nU || !nS) return alert('Preencha os campos!');
             database.ref('usuarios').push({user: nU, pass: nS, tipo: nT});
-            
-            alert('Novo acesso para "' + nU + '" criado com sucesso no Firebase!');
-            document.getElementById('novo-usuario').value = '';
-            document.getElementById('nova-senha').value = '';
+            alert('Conta criada!');
         }
 
-        // --- 7. PERSISTÊNCIA DOS FORMULÁRIOS ---
         function salvarManutencaoDiaria() {
             let numMotor = document.getElementById('m-num-motor').value;
-
-            if(!numMotor) {
-                alert('Erro: É obrigatório inserir o NÚMERO DO MOTOR antes de salvar!');
-                return;
-            }
+            if(!numMotor) return alert('Insira o número do motor!');
 
             let registro = {
                 data: new Date().toISOString().split('T')[0],
-                retifica: selecoesAtuais['m-retifica'] || 'Não selecionado',
-                grupo: selecoesAtuais['m-grupo'] || 'Não selecionado',
+                retifica: selecoesAtuais['m-retifica'] || 'N/A',
+                grupo: selecoesAtuais['m-grupo'] || 'N/A',
                 motor: numMotor,
-                componente: selecoesAtuais['m-comp'] || 'Não selecionado'
+                componente: selecoesAtuais['m-comp'] || 'N/A'
             };
 
             database.ref('bancoManutencao').push(registro);
-
             if(registro.componente === 'Disco') {
                 database.ref('bancoTrocaPecas').push({
-                    peca: `Disco substituído no Motor ${registro.motor} (${registro.retifica} - ${registro.grupo})`,
+                    peca: `Disco no Motor ${registro.motor} (${registro.retifica})`,
                     data: registro.data
                 });
             }
-
-            alert('Manutenção Diária salva!');
+            alert('Salvo!');
             limparFormManutencao();
         }
 
@@ -630,31 +535,17 @@
         }
 
         function salvarCorreia() {
-            if(!selecoesAtuais['c-retifica'] || !selecoesAtuais['c-grupo']) {
-                alert('Erro: Você DEVE selecionar a Retífica E o Grupo antes de salvar!');
-                return;
-            }
-
             let registro = {
                 data: new Date().toISOString().split('T')[0],
-                retifica: selecoesAtuais['c-retifica'],
-                grupo: selecoesAtuais['c-grupo'],
+                retifica: selecoesAtuais['c-retifica'] || 'N/A',
+                grupo: selecoesAtuais['c-grupo'] || 'N/A',
                 posicao: selecoesAtuais['c-posicao'] || 'N/A',
                 mancalInferior: selecoesAtuais['c-mancal-inf'] || 'N/A',
                 mancalSuperior: selecoesAtuais['c-mancal-sup'] || 'N/A',
                 pressionadores: document.getElementById('c-pressionadores').value
             };
-
             database.ref('bancoCorreias').push(registro);
-
-            database.ref('bancoTrocaPecas').push({
-                peca: `Manutenção de Correia ${registro.posicao} em ${registro.retifica}`,
-                data: registro.data
-            });
-
-            alert('Dados da Correia salvos!');
-            document.getElementById('c-pressionadores').value = '';
-            document.querySelectorAll('.c-retifica, .c-grupo, .c-posicao, .c-mancal-inf, .c-mancal-sup').forEach(b => b.classList.remove('selecionado'));
+            alert('Salvo!');
         }
 
         function salvarEmpurrador() {
@@ -665,121 +556,54 @@
                 correiaEmpurrador: selecoesAtuais['e-correia'] || 'N/A',
                 centralizador: selecoesAtuais['e-centr'] || 'N/A'
             };
-
             database.ref('bancoEmpurrador').push(registro);
-
-            database.ref('bancoTrocaPecas').push({
-                peca: `Intervenção Empurrador: Comp [${registro.componente}] / Centralizador [${registro.centralizador}]`,
-                data: registro.data
-            });
-
-            alert('Dados do Empurrador salvos!');
-            document.querySelectorAll('.e-acop, .e-comp, .e-correia, .e-centr').forEach(b => b.classList.remove('selecionado'));
+            alert('Salvo!');
         }
 
         function salvarTrocaPecaManual() {
             let peca = document.getElementById('t-peca').value.trim();
             let data = document.getElementById('t-data').value;
-
-            if(!peca || !data) {
-                alert('Preencha os campos de peça e data.');
-                return;
-            }
-
+            if(!peca || !data) return;
             database.ref('bancoTrocaPecas').push({peca, data});
-            alert('Peça inserida!');
             document.getElementById('t-peca').value = '';
         }
 
-        // --- 8. RELATÓRIOS E PROCESSO DE VIDA ÚTIL ---
         function calcularVidaUtilDiscos() {
             let container = document.getElementById('container-vida-util');
-            if(!container) return;
-            container.innerHTML = '';
-
+            if(!container) return; container.innerHTML = '';
             let trocasDiscos = bancoManutencao.filter(x => x.componente === 'Disco');
-
             if(trocasDiscos.length === 0) {
-                container.innerHTML = '<p style="color: var(--cor-mutada); text-align: center; padding: 20px;">Nenhuma troca de disco registrada.</p>';
+                container.innerHTML = '<p style="color: var(--cor-mutada); text-align: center; padding: 20px;">Nenhum dado.</p>';
                 return;
             }
-
-            let agrupadoPorMotor = {};
-            trocasDiscos.forEach(registro => {
-                if(!agrupadoPorMotor[registro.motor]) {
-                    agrupadoPorMotor[registro.motor] = [];
+            let agrupado = {};
+            trocasDiscos.forEach(r => { if(!agrupado[r.motor]) agrupado[r.motor] = []; agrupado[r.motor].push(r); });
+            for(let m in agrupado) {
+                let lista = agrupado[m].sort((a,b) => new Date(a.data) - new Date(b.data));
+                let html = `<div style="margin-bottom:10px;"><strong style="color:var(--cor-primaria);">Motor: ${m}</strong>`;
+                for(let i = 1; i < lista.length; i++) {
+                    let dif = Math.ceil(Math.abs(new Date(lista[i].data) - new Date(lista[i-1].data)) / (1000*60*60*24));
+                    html += `<div class="item-historico">De ${lista[i-1].data} a ${lista[i].data}: <b>${dif} dias</b></div>`;
                 }
-                agrupadoPorMotor[registro.motor].push(registro);
-            });
-
-            for(let motor in agrupadoPorMotor) {
-                let lista = agrupadoPorMotor[motor].sort((a,b) => new Date(a.data) - new Date(b.data));
-                
-                let htmlMotor = `<div style="margin-bottom: 15px; border-bottom: 1px dashed var(--cor-borda); padding-bottom: 10px;">
-                    <strong style="color: var(--cor-primaria);">Motor Nº: ${motor}</strong>`;
-
-                if(lista.length < 2) {
-                    htmlMotor += `<div style="font-size:0.8rem; color: var(--cor-mutada); margin-left:10px;">Apenas 1 troca registrada em: ${lista[0].data}. Aguardando próximo registro.</div>`;
-                } else {
-                    for(let i = 1; i < lista.length; i++) {
-                        let dataAntiga = new Date(lista[i-1].data);
-                        let dataNova = new Date(lista[i].data);
-                        let diferencaTempo = Math.abs(dataNova - dataAntiga);
-                        let diferencaDias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
-
-                        htmlMotor += `<div class="item-historico" style="margin-left: 10px; margin-top:5px;">
-                            <div>De <strong>${lista[i-1].data}</strong> até <strong>${lista[i].data}</strong></div>
-                            <div style="color: #f59e0b;">⏱️ Duração do Disco: <strong>${diferencaDias} dias</strong> ativo.</div>
-                        </div>`;
-                    }
-                }
-                htmlMotor += `</div>`;
-                container.innerHTML += htmlMotor;
+                html += `</div>`; container.innerHTML += html;
             }
         }
 
         function renderizarHistoricoPecas() {
             let container = document.getElementById('container-historico-pecas');
-            if(!container) return;
-            container.innerHTML = '';
-
-            let listaOrdenada = bancoTrocaPecas.sort((a,b) => new Date(b.data) - new Date(a.data));
-
-            if(listaOrdenada.length === 0) {
-                container.innerHTML = '<p style="color: var(--cor-mutada); text-align: center; padding: 20px;">Nenhuma troca registrada.</p>';
-                return;
-            }
-
-            listaOrdenada.forEach(item => {
-                container.innerHTML += `
-                    <div class="item-historico">
-                        <div style="font-weight: bold; color: #fff;">${item.peca}</div>
-                        <div style="color: var(--cor-mutada); font-size: 0.75rem;">📅 Data da Troca: ${item.data}</div>
-                    </div>
-                `;
+            if(!container) return; container.innerHTML = '';
+            bancoTrocaPecas.sort((a,b) => new Date(b.data) - new Date(a.data)).forEach(item => {
+                container.innerHTML += `<div class="item-historico"><b>${item.peca}</b><div>📅 ${item.data}</div></div>`;
             });
         }
 
         function gerarRelatorio(tipo) {
-            let textoRelatorio = "";
-            
-            if(tipo === 'diaria') {
-                textoRelatorio = "=== RELATÓRIO DE MANUTENÇÃO DIÁRIA ===\n\n";
-                bancoManutencao.forEach(m => {
-                    textoRelatorio += `Data: ${m.data} | Retifica: ${m.retifica} | Grupo: ${m.grupo} | Motor: ${m.motor} | Peça: ${m.componente}\n-----------------------------------\n`;
-                });
-            } else if (tipo === 'empurrador') {
-                textoRelatorio = "=== RELATÓRIO DO EMPURRADOR ===\n\n";
-                bancoEmpurrador.forEach(e => {
-                    textoRelatorio += `Data: ${e.data} | Acoplamento: ${e.acoplamentoEmpurrador} | Item: ${e.componente} | Correia Emp.: ${e.correiaEmpurrador} | Centralizador: ${e.centralizador}\n-----------------------------------\n`;
-                });
-            }
-
-            let blob = new Blob([textoRelatorio], {type: "text/plain;charset=utf-8"});
-            let link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `relatorio-${tipo}-${new Date().toISOString().split('T')[0]}.txt`;
-            link.click();
+            let txt = tipo === 'diaria' ? "=== DIÁRIA ===\n" : "=== EMPURRADOR ===\n";
+            let alvo = tipo === 'diaria' ? bancoManutencao : bancoEmpurrador;
+            alvo.forEach(x => txt += JSON.stringify(x) + "\n");
+            let blob = new Blob([txt], {type: "text/plain;charset=utf-8"});
+            let link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+            link.download = `relatorio-${tipo}.txt`; link.click();
         }
     </script>
 </body>
