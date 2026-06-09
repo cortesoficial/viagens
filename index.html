@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta data-versao="2.0">
+    <meta data-versao="1.0.3">
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sidinei- Manutenção Retífica</title>
+    <title>SQUADRADRY - Gestão de Manutenção</title>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -410,7 +410,7 @@
             <div class="retangulo">
                 <div class="retangulo-titulo">Histórico Geral de Trocas (Linha do Tempo)</div>
                 <div class="historico-container" id="container-historico-pecas">
-                    </div>
+                </div>
             </div>
         </div>
 
@@ -438,9 +438,9 @@
             </div>
 
             <div class="retangulo" style="border-color: #f59e0b;">
-                <div class="retangulo-titulo" style="color: #f59e0b;">🔄 Controle de Cache da Aplicação</div>
-                <p style="font-size: 0.85rem; color: var(--cor-mutada); margin-bottom: 10px;">Caso faça alterações no código, use este botão para forçar todos os celulares conectados a atualizarem instantaneamente na próxima entrada.</p>
-                <button class="btn-acao" style="background: #f59e0b;" onclick="incrementarVersaoBD()">Forçar Atualização Geral</button>
+                <div class="retangulo-titulo" style="color: #f59e0b;">🔄 Controle de Atualizações do App</div>
+                <p style="font-size: 0.85rem; color: var(--cor-mutada); margin-bottom: 10px;">Clique abaixo para forçar o aplicativo de todos os operadores a reiniciar e aplicar arquivos novos na próxima vez que entrarem.</p>
+                <button class="btn-acao" style="background: #f59e0b;" onclick="forcarNovaVersaoBD()">Forçar Atualização Geral</button>
             </div>
         </div>
 
@@ -464,32 +464,36 @@
         let selecoesAtuais = {};
         let usuarioLogado = null;
 
-        // --- 3. SISTEMA DE VERIFICAÇÃO DE ATUALIZAÇÃO AO ENTRAR ---
-        function gerenciarControleDeVersao() {
-            // Pega a string de versão local definida na tag <meta> no início do código HTML
-            const versaoLocal = document.querySelector('meta[data-versao]').getAttribute('data-versao');
+        // --- 3. SISTEMA EXCLUSIVO DE ATUALIZAÇÃO AUTOMÁTICA ---
+        function checarAtualizacaoAoEntrar() {
+            // Pega a versão registrada na tag meta do HTML
+            const metaVersao = document.querySelector('meta[data-versao]');
+            if (!metaVersao) return;
+            const versaoLocal = metaVersao.getAttribute('data-versao');
 
-            // .once('value') faz a checagem apenas UMA VEZ (exatamente ao entrar no app)
+            // Verifica apenas UMA VEZ ao carregar o app para evitar loops
             database.ref('versao_sistema').once('value').then((snapshot) => {
                 const versaoNuvem = snapshot.val();
                 
                 if (!versaoNuvem) {
-                    // Se não existir versão gravada na nuvem ainda, define a atual
+                    // Se não houver registro no Firebase, inicializa com a versão local
                     database.ref('versao_sistema').set(versaoLocal);
                 } else if (versaoNuvem !== versaoLocal) {
-                    console.log('Nova atualização encontrada! Recarregando aplicação...');
-                    // Executa um recarregamento forçado limpando caches de arquivos antigos
+                    console.log('Nova atualização identificada. Limpando cache e recarregando...');
+                    // Força o reload completo ignorando o cache local do navegador
                     window.location.reload(true);
                 }
-            });
+            }).catch(err => console.error("Erro na verificação de versão:", err));
         }
 
-        // Função executada apenas pelo Admin para lançar uma nova versão na nuvem
-        function incrementarVersaoBD() {
-            const novaVersao = "1.0." + Date.now(); // Cria um identificador único com carimbo de tempo
-            database.ref('versao_sistema').set(novaVersao, (error) => {
+        // Função do painel ADM para disparar a atualização geral
+        function forcarNovaVersaoBD() {
+            const hashIdentificador = "v1.0." + Date.now(); // Gera uma chave única por data/hora
+            database.ref('versao_sistema').set(hashIdentificador, (error) => {
                 if(!error) {
-                    alert('Sucesso! Na próxima vez que qualquer operador abrir o aplicativo, ele atualizará automaticamente.');
+                    alert('Sucesso! O comando foi enviado. Quando os operadores abrirem o link, o aplicativo vai atualizar sozinho.');
+                } else {
+                    alert('Erro ao sincronizar comando no Firebase.');
                 }
             });
         }
@@ -532,8 +536,8 @@
 
         window.onload = function() {
             document.getElementById('t-data').valueAsDate = new Date();
-            // Executa a verificação automática de atualização IMEDIATAMENTE ao entrar no app
-            gerenciarControleDeVersao();
+            // Executa a verificação no exato milissegundo em que o app abre
+            checarAtualizacaoAoEntrar();
         };
 
         // --- 5. CONTROLE DE INTERFACE (ABAS) ---
@@ -630,6 +634,7 @@
             limparFormManutencao();
         }
 
+        // Correção de bug de limpeza de campos nas seleções
         function limparFormManutencao() {
             document.getElementById('m-num-motor').value = '';
             document.querySelectorAll('.m-comp, .m-retifica, .m-grupo').forEach(b => b.classList.remove('selecionado'));
