@@ -104,6 +104,18 @@
             border-color: var(--cor-primaria);
         }
 
+        /* Aba exclusiva de Admin (escondida por padrão) */
+        #aba-btn-admin {
+            display: none;
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+        }
+        #aba-btn-admin.ativa {
+            background: #3b82f6;
+            color: #fff;
+            border-color: #3b82f6;
+        }
+
         .conteudo-aba {
             display: none;
         }
@@ -227,14 +239,6 @@
         .item-historico div {
             margin-bottom: 2px;
         }
-
-        /* --- ADMIN PANEL NO LOGIN --- */
-        .admin-box {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--cor-borda);
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -254,19 +258,6 @@
             <input type="password" id="login-senha" placeholder="Digite sua senha">
         </div>
         <button class="btn-acao" onclick="efetuarLogin()">Entrar</button>
-
-        <div id="painel-admin-cadastro" class="admin-box">
-            <h3 style="font-size: 0.9rem; color: var(--cor-primaria); margin-bottom: 10px;">⚙️ Gerenciamento do Admin: Criar Conta</h3>
-            <div class="campo-grupo">
-                <input type="text" id="novo-usuario" placeholder="Novo usuário" style="padding: 8px; font-size: 0.9rem; margin-bottom: 8px;">
-                <input type="password" id="nova-senha" placeholder="Nova senha" style="padding: 8px; font-size: 0.9rem; margin-bottom: 8px;">
-                <select id="novo-tipo" style="padding: 8px; font-size: 0.9rem;">
-                    <option value="operador">Operador</option>
-                    <option value="admin">Administrador</option>
-                </select>
-            </div>
-            <button class="btn-acao" style="padding: 8px; font-size: 0.9rem; background: #6b7280;" onclick="cadastrarUsuario()">Salvar Nova Conta</button>
-        </div>
     </div>
 
     <div id="painel-principal">
@@ -277,6 +268,7 @@
             <button class="aba-btn" onclick="mudarAba('aba-empurrador', this)">Empurrador</button>
             <button class="aba-btn" onclick="mudarAba('aba-vida-util', this)">Vida Útil Discos</button>
             <button class="aba-btn" onclick="mudarAba('aba-troca-pecas', this)">Troca de Peças</button>
+            <button class="aba-btn" id="aba-btn-admin" onclick="mudarAba('aba-admin', this)">⚙️ Painel Adm</button>
         </div>
 
         <div id="aba-manutencao" class="conteudo-aba ativa">
@@ -420,6 +412,30 @@
             </div>
         </div>
 
+        <div id="aba-admin" class="conteudo-aba">
+            <div class="retangulo" style="border-color: #3b82f6;">
+                <div class="retangulo-titulo" style="color: #3b82f6;">⚙️ Gerenciamento de Contas</div>
+                <p style="font-size: 0.85rem; color: var(--cor-mutada); margin-bottom: 15px;">Adicione novos operadores ou administradores diretamente no banco Firebase.</p>
+                
+                <div class="campo-grupo">
+                    <label>Nome do Novo Usuário</label>
+                    <input type="text" id="novo-usuario" placeholder="Ex: joao.manutencao">
+                </div>
+                <div class="campo-grupo">
+                    <label>Senha de Acesso</label>
+                    <input type="password" id="nova-senha" placeholder="Digite a senha">
+                </div>
+                <div class="campo-grupo">
+                    <label>Nível de Permissão</label>
+                    <select id="novo-tipo">
+                        <option value="operador">Operador (Apenas Lançamentos)</option>
+                        <option value="admin">Administrador (Acesso Total)</option>
+                    </select>
+                </div>
+                <button class="btn-acao" style="background: #3b82f6;" onclick="cadastrarUsuario()">Criar e Salvar Conta</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -430,7 +446,7 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // --- 2. ARMAZENAMENTO LOCAL DOS DADOS (SINCRONIZADOS COM FIREBASE) ---
+        // --- 2. ARMAZENAMENTO LOCAL ---
         let bancoUsuarios = [];
         let bancoManutencao = [];
         let bancoCorreias = [];
@@ -441,14 +457,11 @@
         let usuarioLogado = null;
 
         // --- 3. ESCUTADORES EM TEMPO REAL (FIREBASE) ---
-        
-        // Sincroniza Usuários e cria o padrão caso o banco esteja vazio
         database.ref('usuarios').on('value', (snapshot) => {
             const dados = snapshot.val();
             if (dados) {
                 bancoUsuarios = Object.values(dados);
             } else {
-                // Banco inicial padrão se estiver totalmente vazio
                 const usuariosPadrao = [
                     {user: 'admin', pass: 'admin123', tipo: 'admin'},
                     {user: 'operador', pass: '1234', tipo: 'operador'}
@@ -457,26 +470,22 @@
             }
         });
 
-        // Sincroniza Manutenção Diária
         database.ref('bancoManutencao').on('value', (snapshot) => {
             const dados = snapshot.val();
             bancoManutencao = dados ? Object.values(dados) : [];
             calcularVidaUtilDiscos();
         });
 
-        // Sincroniza Correias
         database.ref('bancoCorreias').on('value', (snapshot) => {
             const dados = snapshot.val();
             bancoCorreias = dados ? Object.values(dados) : [];
         });
 
-        // Sincroniza Empurrador
         database.ref('bancoEmpurrador').on('value', (snapshot) => {
             const dados = snapshot.val();
             bancoEmpurrador = dados ? Object.values(dados) : [];
         });
 
-        // Sincroniza Troca de Peças Geral
         database.ref('bancoTrocaPecas').on('value', (snapshot) => {
             const dados = snapshot.val();
             bancoTrocaPecas = dados ? Object.values(dados) : [];
@@ -487,7 +496,7 @@
             document.getElementById('t-data').valueAsDate = new Date();
         };
 
-        // --- 4. CONTROLE DE INTERFACE (ABAS E SELETORES) ---
+        // --- 4. CONTROLE DE INTERFACE (ABAS) ---
         function mudarAba(idAba, botao) {
             document.querySelectorAll('.conteudo-aba').forEach(aba => aba.classList.remove('ativa'));
             document.querySelectorAll('.aba-btn').forEach(btn => btn.classList.remove('ativa'));
@@ -506,10 +515,6 @@
         }
 
         // --- 5. SISTEMA DE LOGIN E CADASTRO ---
-        function efetuaraLogin() { // Mantida compatibilidade com a chamada do botão
-            efetuarLogin();
-        }
-
         function efetuarLogin() {
             let u = document.getElementById('login-usuario').value.trim();
             let s = document.getElementById('login-senha').value.trim();
@@ -520,10 +525,11 @@
                 usuarioLogado = conta;
                 alert('Acesso concedido. Bem-vindo, ' + conta.user);
                 
+                // Exibe a aba de Administração apenas se for Admin
                 if(conta.tipo === 'admin') {
-                    document.getElementById('painel-admin-cadastro').style.display = 'block';
+                    document.getElementById('aba-btn-admin').style.display = 'inline-block';
                 } else {
-                    document.getElementById('painel-admin-cadastro').style.display = 'none';
+                    document.getElementById('aba-btn-admin').style.display = 'none';
                 }
                 
                 document.getElementById('tela-login').style.display = 'none';
@@ -548,16 +554,14 @@
                 return;
             }
 
-            // Grava diretamente no nó de usuários do Firebase
             database.ref('usuarios').push({user: nU, pass: nS, tipo: nT});
             
-            alert('Conta de ' + nU + ' criada e salva no Firebase com sucesso!');
+            alert('Novo acesso para "' + nU + '" criado com sucesso no Firebase!');
             document.getElementById('novo-usuario').value = '';
             document.getElementById('nova-senha').value = '';
         }
 
-        // --- 6. PERSISTÊNCIA DE DADOS NO FIREBASE ---
-
+        // --- 6. PERSISTÊNCIA DOS FORMULÁRIOS ---
         function salvarManutencaoDiaria() {
             let numMotor = document.getElementById('m-num-motor').value;
 
@@ -574,10 +578,8 @@
                 componente: selecoesAtuais['m-comp'] || 'Não selecionado'
             };
 
-            // Envia para o nó bancoManutencao no Firebase
             database.ref('bancoManutencao').push(registro);
 
-            // Se for troca de disco, lança também no histórico geral
             if(registro.componente === 'Disco') {
                 database.ref('bancoTrocaPecas').push({
                     peca: `Disco substituído no Motor ${registro.motor} (${registro.retifica} - ${registro.grupo})`,
@@ -585,7 +587,7 @@
                 });
             }
 
-            alert('Manutenção Diária salva no Firebase!');
+            alert('Manutenção Diária salva!');
             limparFormManutencao();
         }
 
@@ -618,7 +620,7 @@
                 data: registro.data
             });
 
-            alert('Dados da Correia salvos no Firebase!');
+            alert('Dados da Correia salvos!');
             document.getElementById('c-pressionadores').value = '';
             document.querySelectorAll('.c-retifica, .c-grupo, .c-posicao, .c-mancal-inf, .c-mancal-sup').forEach(b => b.classList.remove('selecionado'));
         }
@@ -639,7 +641,7 @@
                 data: registro.data
             });
 
-            alert('Dados do Empurrador salvos no Firebase!');
+            alert('Dados do Empurrador salvos!');
             document.querySelectorAll('.e-acop, .e-comp, .e-correia, .e-centr').forEach(b => b.classList.remove('selecionado'));
         }
 
@@ -653,13 +655,11 @@
             }
 
             database.ref('bancoTrocaPecas').push({peca, data});
-            
-            alert('Peça inserida no Firebase!');
+            alert('Peça inserida!');
             document.getElementById('t-peca').value = '';
         }
 
-        // --- 7. PROCESSAMENTO E VISUALIZAÇÃO DE RELATÓRIOS ---
-
+        // --- 7. RELATÓRIOS E PROCESSO DE VIDA ÚTIL ---
         function calcularVidaUtilDiscos() {
             let container = document.getElementById('container-vida-util');
             if(!container) return;
