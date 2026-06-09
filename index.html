@@ -2,536 +2,722 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Controle de Carregamento</title>
-    <meta name="referrer" content="no-referrer">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQUADRADRY - Gestão de Manutenção</title>
     <style>
         :root {
-            --primary: #2b6cb0;
-            --primary-hover: #1a365d;
-            --success: #2f855a;
-            --danger: #e53e3e;
-            --warning: #dd6b20;
-            --background: #edf2f7;
-            --card-bg: #ffffff;
-            --text: #2d3748;
-            --border: #e2e8f0;
-            --whatsapp: #25D366;
-            --pdf-color: #e53e3e;
+            --bg-principal: #121824;
+            --bg-card: #1c2434;
+            --bg-input: #26324a;
+            --cor-primaria: #10b981; /* Verde Esmeralda */
+            --cor-primaria-hover: #059669;
+            --cor-texto: #f3f4f6;
+            --cor-mutada: #9ca3af;
+            --cor-borda: #374151;
+            --cor-perigo: #ef4444;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--background); color: var(--text); padding: 12px; font-size: 16px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 20px; padding: 15px 10px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
-        header h1 { color: var(--primary); font-size: 1.6rem; margin-bottom: 4px; }
-        header p { font-size: 0.9rem; color: #718096; }
-
-        #tela-login { display: flex; justify-content: center; align-items: center; min-height: 85vh; }
-        .login-card { background: var(--card-bg); padding: 25px 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); width: 100%; max-width: 400px; }
-        .login-card h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
-        #painel-principal { display: none; }
-
-        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        @media (min-width: 992px) { .grid { grid-template-columns: 1fr 1.6fr; } }
-
-        .card { background: var(--card-bg); padding: 20px 16px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 4px; }
-        h2 { color: var(--primary); margin-bottom: 18px; font-size: 1.25rem; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-        .form-group { margin-bottom: 16px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; color: #4a5568; }
-        
-        select, input { width: 100%; padding: 14px; border: 1px solid #cbd5e0; border-radius: 10px; font-size: 1rem; background-color: #f7fafc; transition: all 0.2s; }
-        select:focus, input:focus { outline: none; border-color: var(--primary); background-color: #fff; }
-
-        .chave-mascarada { -webkit-text-security: disc; text-security: disc; }
-
-        button { width: 100%; padding: 15px; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.08); transition: background-color 0.2s; }
-        button:active { opacity: 0.9; }
-        .btn-saida { background-color: var(--warning); }
-        .btn-entrada { background-color: var(--success); }
-        
-        .botoes-relatorio { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
-        @media (min-width: 480px) { .botoes-relatorio { grid-template-columns: 1fr 1fr; } }
-        
-        .btn-whatsapp { background-color: var(--whatsapp); color: white; }
-        .btn-pdf { background-color: var(--pdf-color); color: white; }
-        
-        .btn-danger { background-color: #e2e8f0; color: #4a5568; margin-top: 12px; font-size: 0.9rem; padding: 12px; }
-        .btn-logout { background-color: #e2e8f0; color: #4a5568; padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; margin-top: 10px; width: auto; display: inline-block; }
-
-        .resumo-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-        .resumo-item { background: #f7fafc; padding: 12px 6px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
-        .resumo-item p { font-size: 0.75rem; color: #718096; font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
-        .resumo-item span { display: block; font-size: 1.1rem; font-weight: bold; color: var(--primary); }
-
-        .table-container { margin-top: 10px; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
-        th { background-color: #f7fafc; color: #4a5568; font-size: 0.85rem; }
-
-        @media (max-width: 768px) {
-            thead { display: none; }
-            table, tbody, tr, td { display: block; width: 100%; }
-            tr { background: #f7fafc; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
-            td { text-align: right; padding: 6px 0; border-bottom: 1px dashed #edf2f7; display: flex; justify-content: space-between; align-items: center; }
-            td:last-child { border-bottom: none; padding-top: 10px; }
-            td::before { content: attr(data-label); font-weight: bold; text-align: left; color: #718096; font-size: 0.85rem; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .badge { padding: 6px 10px; border-radius: 20px; font-weight: bold; font-size: 0.8rem; display: inline-block; }
-        .badge-transito { background: #feebc8; color: #c05621; }
-        .badge-concluido { background: #c6f6d5; color: #22543d; }
-        .erro-msg { color: var(--danger); font-size: 0.9rem; margin-top: 10px; display: none; font-weight: bold; text-align: center; }
-        .lista-usuarios { margin-top: 10px; font-size: 0.85rem; background: #f7fafc; padding: 10px; border-radius: 8px; max-height: 90px; overflow-y: auto; border: 1px solid var(--border); }
-        
-        /* Estilo oculto especial para exportacao limpa do relatorio em PDF */
-        #printable-report-area { display: none; background: white; padding: 30px; color: #2d3748; }
-        .pdf-header { border-bottom: 3px solid #2b6cb0; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
-        .pdf-header h1 { color: #2b6cb0; font-size: 24px; text-transform: uppercase; }
-        .pdf-meta { display: flex; justify-content: space-between; margin-bottom: 20px; background: #f7fafc; padding: 10px; border-radius: 6px; font-size: 14px; }
-        .pdf-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .pdf-table th, .pdf-table td { padding: 10px; border: 1px solid #cbd5e0; text-align: left; font-size: 13px; }
-        .pdf-table th { background-color: #ebf8ff; color: #2b6cb0; }
+        body {
+            background-color: var(--bg-principal);
+            color: var(--cor-texto);
+            padding: 10px;
+            padding-bottom: 30px;
+        }
+
+        header {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--cor-borda);
+            margin-bottom: 15px;
+        }
+
+        header h1 {
+            font-size: 1.4rem;
+            color: var(--cor-primaria);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- TELA DE LOGIN --- */
+        #tela-login {
+            max-width: 400px;
+            margin: 40px auto;
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid var(--cor-borda);
+        }
+
+        /* --- NAVEGAÇÃO POR ABAS (Mobile Friendly) --- */
+        #painel-principal {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .abas-container {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            gap: 5px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--cor-borda);
+        }
+
+        .abas-container::-webkit-scrollbar {
+            height: 4px;
+        }
+        .abas-container::-webkit-scrollbar-thumb {
+            background: var(--cor-borda);
+            border-radius: 4px;
+        }
+
+        .aba-btn {
+            background: var(--bg-card);
+            color: var(--cor-mutada);
+            border: 1px solid var(--cor-borda);
+            padding: 10px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .aba-btn.ativa {
+            background: var(--cor-primaria);
+            color: #fff;
+            border-color: var(--cor-primaria);
+        }
+
+        .conteudo-aba {
+            display: none;
+        }
+
+        .conteudo-aba.ativa {
+            display: block;
+        }
+
+        /* --- FORMULÁRIOS E ESTRUTURA --- */
+        .retangulo {
+            background: var(--bg-card);
+            border: 1px solid var(--cor-borda);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .retangulo-titulo {
+            font-size: 0.85rem;
+            color: var(--cor-primaria);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .grupo-botoes-secao {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .campo-grupo {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--cor-mutada);
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="password"], input[type="number"], input[type="date"], select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--cor-borda);
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--cor-primaria);
+        }
+
+        /* --- BOTÕES DE SELEÇÃO ATIVOS/INATIVOS --- */
+        .btn-seletor {
+            background: var(--bg-input);
+            color: var(--cor-texto);
+            border: 1px solid var(--cor-borda);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-seletor.selecionado {
+            background: var(--cor-primaria);
+            color: #fff;
+            border-color: var(--cor-primaria);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+
+        /* --- BOTÕES DE AÇÃO PRINCIPAL --- */
+        .btn-acao {
+            width: 100%;
+            background: var(--cor-primaria);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .btn-acao:active {
+            transform: scale(0.98);
+        }
+
+        .btn-relatorio {
+            background: #3b82f6; /* Azul */
+            margin-top: 15px;
+        }
+
+        /* --- ESTILOS DE TABELA E HISTÓRICO --- */
+        .historico-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .item-historico {
+            background: var(--bg-input);
+            border-left: 4px solid var(--cor-primaria);
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+        }
+
+        .item-historico div {
+            margin-bottom: 2px;
+        }
+
+        /* --- ADMIN PANEL NO LOGIN --- */
+        .admin-box {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--cor-borda);
+            display: none;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+    <header>
+        <h1>SQUADRADRY</h1>
+    </header>
+
     <div id="tela-login">
-        <div class="login-card">
-            <h2>Carregamento - Validação</h2>
-            <div id="wrapper-acesso">
-                <div class="form-group">
-                    <label>Operador (Matrícula)</label>
-                    <input type="text" id="v_user" placeholder="Código de identificação" autocomplete="off" spellcheck="false">
-                </div>
-                <div class="form-group">
-                    <label>Chave Verificadora</label>
-                    <input type="text" class="chave-mascarada" id="v_pass" placeholder="••••••••" autocomplete="off">
-                    <div id="erro-login" class="erro-msg">Credenciais inválidas no banco de dados.</div>
-                </div>
-                <button type="button" onclick="executarValidacaoInterna()" style="background-color: var(--primary)">Liberar Acesso</button>
+        <h2 style="margin-bottom: 15px; font-size: 1.2rem; text-align: center;">Acesso ao Sistema</h2>
+        <div class="campo-grupo">
+            <label>Usuário</label>
+            <input type="text" id="login-usuario" placeholder="Digite seu usuário">
+        </div>
+        <div class="campo-grupo">
+            <label>Senha</label>
+            <input type="password" id="login-senha" placeholder="Digite sua senha">
+        </div>
+        <button class="btn-acao" onclick="efetuarLogin()">Entrar</button>
+
+        <div id="painel-admin-cadastro" class="admin-box">
+            <h3 style="font-size: 0.9rem; color: var(--cor-primaria); margin-bottom: 10px;">⚙️ Gerenciamento do Admin: Criar Conta</h3>
+            <div class="campo-grupo">
+                <input type="text" id="novo-usuario" placeholder="Novo usuário" style="padding: 8px; font-size: 0.9rem; margin-bottom: 8px;">
+                <input type="password" id="nova-senha" placeholder="Nova senha" style="padding: 8px; font-size: 0.9rem; margin-bottom: 8px;">
+                <select id="novo-tipo" style="padding: 8px; font-size: 0.9rem;">
+                    <option value="operador">Operador</option>
+                    <option value="admin">Administrador</option>
+                </select>
             </div>
+            <button class="btn-acao" style="padding: 8px; font-size: 0.9rem; background: #6b7280;" onclick="cadastrarUsuario()">Salvar Nova Conta</button>
         </div>
     </div>
 
     <div id="painel-principal">
-        <header>
-            <h1>Controle de Carregamento</h1>
-            <p>Sincronizado na Nuvem Firebase</p>
-            <button class="btn-logout" onclick="fazerLogout()">🔓 Sair da Conta</button>
-        </header>
-
-        <div class="grid">
-            <div class="bloco-comandos">
-                <div class="card">
-                    <h2>🚀 Registrar Saída</h2>
-                    <form id="form-saida">
-                        <div class="form-group">
-                            <label for="origem">Local de Origem</label>
-                            <select id="origem" required>
-                                <option value="Retífica">Retífica</option>
-                                <option value="Classificação">Classificação</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="destino">Local de Envio (Destino)</label>
-                            <select id="destino" required>
-                                <option value="CD">CD</option>
-                                <option value="Refratário">Refratário</option>
-                                <option value="Pátio">Pátio</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="bitola">Bitola (Formato)</label>
-                            <select id="bitola" required>
-                                <option value="90x90">90x90 (3 pçs por caixa | 0.81m² pç)</option>
-                                <option value="32x60">32x60 (12 pçs por caixa | 2.30m² cx)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="paletes">Quantidade de Paletes</label>
-                            <input type="number" id="paletes" min="1" value="1" inputmode="numeric" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="caixas_por_palete">Caixas por Palete</label>
-                            <input type="number" id="caixas_por_palete" min="1" placeholder="Ex: 60" inputmode="numeric" required>
-                        </div>
-                        <button type="submit" class="btn-saida">Lançar Saída</button>
-                    </form>
-                </div>
-
-                <div class="card" style="border-top: 4px solid var(--success);">
-                    <h2>📥 Registrar Entrada (Retorno)</h2>
-                    <form id="form-entrada">
-                        <div class="form-group">
-                            <label for="selecionar_viagem">Selecione a Carreta que Voltou</label>
-                            <select id="selecionar_viagem" required>
-                                <option value="">-- Carregando viagens... --</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn-entrada">Confirmar Chegada</button>
-                    </form>
-                </div>
-
-                <div class="card" id="card-usuarios">
-                    <h2>Gerenciar Logins</h2>
-                    <form id="form-novo-usuario">
-                        <div class="form-group">
-                            <input type="text" id="novo_usuario" placeholder="Novo usuário" required autocomplete="off" style="margin-bottom: 8px;">
-                            <input type="text" class="chave-mascarada" id="nova_senha" placeholder="Senha" required autocomplete="off">
-                        </div>
-                        <button type="submit" style="background-color: #4a5568; padding: 12px; font-size: 0.9rem;">+ Adicionar Login</button>
-                    </form>
-                    <div class="lista-usuarios" id="lista-usuarios-cadastrados"></div>
-                </div>
-            </div>
-
-            <div class="card" id="bloco-relatorio-tabela">
-                <h2>Relatório de Carregamento do Dia</h2>
-                <div class="resumo-cards">
-                    <div class="resumo-item">
-                        <p>Viagens</p>
-                        <span id="resumo-viagens">0</span>
-                    </div>
-                    <div class="resumo-item">
-                        <p>Paletes</p>
-                        <span id="resumo-paletes">0</span>
-                    </div>
-                    <div class="resumo-item">
-                        <p>Enviado</p>
-                        <span id="resumo-metros">0 m²</span>
-                    </div>
-                </div>
-
-                <h2>Histórico de Movimentações</h2>
-                <div class="table-container">
-                    <table id="tabela-viagens">
-                        <thead>
-                            <tr>
-                                <th>Nº</th>
-                                <th>Rota</th>
-                                <th>Bitola</th>
-                                <th>Carga</th>
-                                <th>Metragem</th>
-                                <th>Saída</th>
-                                <th>Retorno</th>
-                                <th>Duração</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                
-                <div class="botoes-relatorio">
-                    <button type="button" class="btn-whatsapp" onclick="enviarRelatorioWhatsApp()">🟢 Relatório em Texto p/ WhatsApp</button>
-                    <button type="button" class="btn-pdf" onclick="gerarDocumentoPDF()">📄 Baixar Relatório Oficial em PDF</button>
-                </div>
-                <button type="button" class="btn-danger" onclick="limparDados()">❌ Limpar Dados do Dia</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="printable-report-area">
-    <div class="pdf-header">
-        <h1 id="pdf-titulo-principal">Relatório Diário de Carregamento</h1>
-        <p>Sistema Integrado de Logística Industrial</p>
-    </div>
-    <div class="pdf-meta">
-        <div><strong>Data do Relatório:</strong> <span id="pdf-data">--/--/----</span></div>
-        <div><strong>Total de Movimentações:</strong> <span id="pdf-total-viagens">0</span></div>
-    </div>
-    <div style="display: flex; gap: 20px; margin-bottom: 25px;">
-        <div style="flex: 1; background: #f7fafc; padding: 15px; border-radius: 6px; text-align: center; border: 1px solid #e2e8f0;">
-            <p style="font-size: 12px; color: #718096; font-weight: bold; text-transform: uppercase;">Total de Paletes</p>
-            <span id="pdf-resumo-paletes" style="font-size: 22px; font-weight: bold; color: #2b6cb0;">0</span>
-        </div>
-        <div style="flex: 1; background: #f7fafc; padding: 15px; border-radius: 6px; text-align: center; border: 1px solid #e2e8f0;">
-            <p style="font-size: 12px; color: #718096; font-weight: bold; text-transform: uppercase;">Metragem Total Cadastrada</p>
-            <span id="pdf-resumo-metros" style="font-size: 22px; font-weight: bold; color: #2b6cb0;">0.00 m²</span>
-        </div>
-    </div>
-    <h3>Histórico Detalhado</h3>
-    <table class="pdf-table" id="pdf-tabela-dados">
-        <thead>
-            <tr>
-                <th>Nº</th>
-                <th>Rota Original</th>
-                <th>Bitola</th>
-                <th>Paletes / Caixas</th>
-                <th>M² Total</th>
-                <th>Horário Saída</th>
-                <th>Horário Retorno</th>
-                <th>Duração</th>
-                <th>Situação</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-    <div style="margin-top: 40px; text-align: center; font-size: 11px; color: #a0aec0; border-top: 1px solid #e2e8f0; padding-top: 10px;">
-        Documento gerado eletronicamente via Sistema de Carregamento. Sincronização Firebase Realtime Database.
-    </div>
-</div>
-
-<script>
-    const firebaseConfig = { databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/" };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    let bancoUsuarios = [{ user: "sm623199", senha: "sergio123" }];
-    let viagens = [];
-    let usuarioLogado = sessionStorage.getItem('usuario_logado') || null;
-
-    document.addEventListener("DOMContentLoaded", function() {
-        if (usuarioLogado) { mostrarPainelPrincipal(); } else { mostrarTelaLogin(); }
         
-        database.ref('usuarios').on('value', (snapshot) => {
-            const dados = snapshot.val();
-            bancoUsuarios = [{ user: "sm623199", senha: "sergio123" }];
-            if (dados) {
-                Object.keys(dados).forEach(key => { bancoUsuarios.push(dados[key]); });
+        <div class="abas-container">
+            <button class="aba-btn ativa" onclick="mudarAba('aba-manutencao', this)">Manutenção Diária</button>
+            <button class="aba-btn" onclick="mudarAba('aba-correia', this)">Correia</button>
+            <button class="aba-btn" onclick="mudarAba('aba-empurrador', this)">Empurrador</button>
+            <button class="aba-btn" onclick="mudarAba('aba-vida-util', this)">Vida Útil Discos</button>
+            <button class="aba-btn" onclick="mudarAba('aba-troca-pecas', this)">Troca de Peças</button>
+        </div>
+
+        <div id="aba-manutencao" class="conteudo-aba ativa">
+            <div class="grupo-botoes-secao">
+                <button class="btn-seletor m-retifica" onclick="selecionarBotao('m-retifica', this, 'R1')">Retifica 1</button>
+                <button class="btn-seletor m-retifica" onclick="selecionarBotao('m-retifica', this, 'R2')">Retifica 2</button>
+            </div>
+            <div class="grupo-botoes-secao">
+                <button class="btn-seletor m-grupo" onclick="selecionarBotao('m-grupo', this, 'G1')">Grupo 1</button>
+                <button class="btn-seletor m-grupo" onclick="selecionarBotao('m-grupo', this, 'G2')">Grupo 2</button>
+            </div>
+
+            <div class="campo-grupo">
+                <label>Número do Motor</label>
+                <input type="number" id="m-num-motor" placeholder="Ex: 1045">
+            </div>
+
+            <div class="retangulo">
+                <div class="retangulo-titulo">Componentes do Motor</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn-seletor m-comp" onclick="selecionarBotao('m-comp', this, 'Motor')">Motor</button>
+                    <button class="btn-seletor m-comp" onclick="selecionarBotao('m-comp', this, 'Disco')">Disco</button>
+                    <button class="btn-seletor m-comp" onclick="selecionarBotao('m-comp', this, 'Mancal')">Mancal</button>
+                    <button class="btn-seletor m-comp" onclick="selecionarBotao('m-comp', this, 'Acoplamento do Motor')">Acoplamento do Motor</button>
+                    <button class="btn-seletor m-comp" onclick="selecionarBotao('m-comp', this, 'Acoplamento Mancal')">Acoplamento Mancal</button>
+                </div>
+            </div>
+
+            <button class="btn-acao" onclick="salvarManutencaoDiaria()">Salvar Registro</button>
+            <button class="btn-acao btn-relatorio" onclick="gerarRelatorio('diaria')">Gerar Relatório Diária</button>
+        </div>
+
+        <div id="aba-correia" class="conteudo-aba">
+            <div class="retangulo">
+                <div class="retangulo-titulo">Localização</div>
+                <div class="grupo-botoes-secao">
+                    <button class="btn-seletor c-retifica" onclick="selecionarBotao('c-retifica', this, 'R1')">Retifica 1</button>
+                    <button class="btn-seletor c-retifica" onclick="selecionarBotao('c-retifica', this, 'R2')">Retifica 2</button>
+                </div>
+                <div class="grupo-botoes-secao">
+                    <button class="btn-seletor c-grupo" onclick="selecionarBotao('c-grupo', this, 'G1')">Grupo 1</button>
+                    <button class="btn-seletor c-grupo" onclick="selecionarBotao('c-grupo', this, 'G2')">Grupo 2</button>
+                </div>
+            </div>
+
+            <div class="retangulo">
+                <div class="retangulo-titulo">Posição da Correia</div>
+                <div class="grupo-botoes-secao">
+                    <button class="btn-seletor c-posicao" onclick="selecionarBotao('c-posicao', this, 'Superior')">Correia Superior</button>
+                    <button class="btn-seletor c-posicao" onclick="selecionarBotao('c-posicao', this, 'Inferior')">Correia Inferior</button>
+                </div>
+            </div>
+
+            <div class="retangulo">
+                <div class="retangulo-titulo">Mancal da Correia Inferior</div>
+                <div class="grupo-botoes-secao">
+                    <button class="btn-seletor c-mancal-inf" onclick="selecionarBotao('c-mancal-inf', this, 'Direita')">Direita</button>
+                    <button class="btn-seletor c-mancal-inf" onclick="selecionarBotao('c-mancal-inf', this, 'Esquerda')">Esquerda</button>
+                </div>
+            </div>
+
+            <div class="retangulo">
+                <div class="retangulo-titulo">Mancal Superior</div>
+                <div class="grupo-botoes-secao">
+                    <button class="btn-seletor c-mancal-sup" onclick="selecionarBotao('c-mancal-sup', this, 'Direita')">Direita</button>
+                    <button class="btn-seletor c-mancal-sup" onclick="selecionarBotao('c-mancal-sup', this, 'Esquerda')">Esquerda</button>
+                </div>
+            </div>
+
+            <div class="retangulo">
+                <div class="retangulo-titulo">Pressionadores</div>
+                <input type="text" id="c-pressionadores" placeholder="Descreva as observações/dados">
+            </div>
+
+            <button class="btn-acao" onclick="salvarCorreia()">Salvar Correia</button>
+        </div>
+
+        <div id="aba-empurrador" class="conteudo-aba">
+            <div class="retangulo">
+                <div class="retangulo-titulo">Acoplamento Empurrador</div>
+                <div class="grupo-botoes-secao">
+                    <button class="btn-seletor e-acop" onclick="selecionarBotao('e-acop', this, 'Direita')">Direita</button>
+                    <button class="btn-seletor e-acop" onclick="selecionarBotao('e-acop', this, 'Esquerda')">Esquerda</button>
+                </div>
+            </div>
+
+            <div class="retangulo">
+                <div class="retangulo-titulo">Componentes do Empurrador</div>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                    <button class="btn-seletor e-comp" onclick="selecionarBotao('e-comp', this, 'Pastilha do Empurrador')">Pastilha do Empurrador</button>
+                </div>
+                <label>Correia Empurrador</label>
+                <div class="grupo-botoes-secao">
+                    <button class="btn-seletor e-correia" onclick="selecionarBotao('e-correia', this, 'Direita')">Direita</button>
+                    <button class="btn-seletor e-correia" onclick="selecionarBotao('e-correia', this, 'Esquerda')">Esquerda</button>
+                </div>
+            </div>
+
+            <div class="retangulo">
+                <div class="retangulo-titulo">Centralizador</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button class="btn-seletor e-centr" onclick="selecionarBotao('e-centr', this, 'Rodinhas')">Rodinhas</button>
+                    <button class="btn-seletor e-centr" onclick="selecionarBotao('e-centr', this, 'Régua')">Régua</button>
+                    <button class="btn-seletor e-centr" onclick="selecionarBotao('e-centr', this, 'Acoplamento do Centralizador')">Acoplamento do Centralizador</button>
+                </div>
+            </div>
+
+            <button class="btn-acao" onclick="salvarEmpurrador()">Salvar Empurrador</button>
+            <button class="btn-acao btn-relatorio" onclick="gerarRelatorio('empurrador')">Gerar Relatório Empurrador</button>
+        </div>
+
+        <div id="aba-vida-util" class="conteudo-aba">
+            <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--cor-primaria);">Cálculo de Vida Útil do Disco</h3>
+            <p style="font-size: 0.8rem; color: var(--cor-mutada); margin-bottom: 15px;">Calcula automaticamente os dias entre trocas de discos filtrados pelo mesmo número de motor.</p>
+            
+            <div class="retangulo">
+                <div class="historico-container" id="container-vida-util">
+                    <p style="color: var(--cor-mutada); text-align: center; padding: 20px;">Nenhum dado calculado ainda.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="aba-troca-pecas" class="conteudo-aba">
+            <div class="retangulo">
+                <div class="retangulo-titulo">Registrar Nova Troca Manual</div>
+                <div class="campo-grupo">
+                    <label>Peça Trocada</label>
+                    <input type="text" id="t-peca" placeholder="Ex: Rolamento Mancal R1">
+                </div>
+                <div class="campo-grupo">
+                    <label>Data da Troca</label>
+                    <input type="date" id="t-data">
+                </div>
+                <button class="btn-acao" style="background: #4b5563;" onclick="salvarTrocaPecaManual()">Registrar Peça</button>
+            </div>
+
+            <div class="retangulo">
+                <div class="retangulo-titulo">Histórico Geral de Trocas (Linha do Tempo)</div>
+                <div class="historico-container" id="container-historico-pecas">
+                    </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- BANCO DE DADOS LOCAL (Simulado) ---
+        if(!localStorage.getItem('usuarios')) {
+            localStorage.setItem('usuarios', JSON.stringify([
+                {user: 'admin', pass: 'admin123', tipo: 'admin'},
+                {user: 'operador', pass: '1234', tipo: 'operador'}
+            ]));
+        }
+        
+        let bancoManutencao = JSON.parse(localStorage.getItem('bancoManutencao')) || [];
+        let bancoCorreias = JSON.parse(localStorage.getItem('bancoCorreias')) || [];
+        let bancoEmpurrador = JSON.parse(localStorage.getItem('bancoEmpurrador')) || [];
+        let bancoTrocaPecas = JSON.parse(localStorage.getItem('bancoTrocaPecas')) || [];
+
+        // --- CONTROLE DE SELEÇÃO ATIVA DOS BOTÕES ---
+        let selecoesAtuais = {};
+
+        function verificarSessao() {
+            // Garante início limpo para demonstração
+            document.getElementById('t-data').valueAsDate = new Date();
+        }
+        window.onload = verificarSessao;
+
+        function mudarAba(idAba, botao) {
+            document.querySelectorAll('.conteudo-aba').forEach(aba => aba.classList.remove('ativa'));
+            document.querySelectorAll('.aba-btn').forEach(btn => btn.classList.remove('ativa'));
+            
+            document.getElementById(idAba).classList.add('ativa');
+            botao.classList.add('ativa');
+
+            if(idAba === 'aba-vida-util') calcularVidaUtilDiscos();
+            if(idAba === 'aba-troca-pecas') renderizarHistoricoPecas();
+        }
+
+        function selecionarBotao(grupo, elemento, valor) {
+            document.querySelectorAll('.' + grupo).forEach(btn => btn.classList.remove('selecionado'));
+            elemento.classList.add('selecionado');
+            selecoesAtuais[grupo] = valor;
+        }
+
+        // --- SISTEMA DE LOGIN E CADASTRO DE CONTAS ---
+        let usuarioLogado = null;
+
+        function efetuarLogin() {
+            let u = document.getElementById('login-usuario').value;
+            let s = document.getElementById('login-senha').value;
+            let listaUsuarios = JSON.parse(localStorage.getItem('usuarios'));
+
+            let conta = listaUsuarios.find(x => x.user === u && x.pass === s);
+
+            if(conta) {
+                usuarioLogado = conta;
+                alert('Acesso concedido. Bem-vindo, ' + conta.user);
+                
+                if(conta.tipo === 'admin') {
+                    document.getElementById('painel-admin-cadastro').style.display = 'block';
+                } else {
+                    document.getElementById('painel-admin-cadastro').style.display = 'none';
+                }
+                
+                document.getElementById('tela-login').style.display = 'none';
+                document.getElementById('painel-principal').style.display = 'block';
+            } else {
+                alert('Usuário ou senha incorretos!');
             }
-            atualizarListaUsuariosVisual();
-        });
+        }
 
-        database.ref('viagens').on('value', (snapshot) => {
-            const dados = snapshot.val();
-            viagens = [];
-            if (dados) {
-                Object.keys(dados).forEach(key => { viagens.push(dados[key]); });
+        function cadastrarUsuario() {
+            let nU = document.getElementById('novo-usuario').value.trim();
+            let nS = document.getElementById('nova-senha').value.trim();
+            let nT = document.getElementById('novo-tipo').value;
+
+            if(!nU || !nS) {
+                alert('Preencha os dados do novo usuário.');
+                return;
             }
-            atualizarTabela();
-            atualizarResumo();
-            atualizarSelectEntrada();
-        });
-    });
 
-    function executarValidacaoInterna() {
-        const userIn = document.getElementById('v_user').value.trim();
-        const senhaIn = document.getElementById('v_pass').value;
-        const contaValida = bancoUsuarios.find(u => u.user === userIn && u.senha === senhaIn);
+            let listaUsuarios = JSON.parse(localStorage.getItem('usuarios'));
+            if(listaUsuarios.some(x => x.user === nU)) {
+                alert('Este usuário já existe!');
+                return;
+            }
 
-        if (contaValida) {
-            sessionStorage.setItem('usuario_logado', userIn);
-            usuarioLogado = userIn;
-            document.getElementById('erro-login').style.display = 'none';
-            document.getElementById('v_user').value = '';
-            document.getElementById('v_pass').value = '';
-            mostrarPainelPrincipal();
-        } else {
-            document.getElementById('erro-login').style.display = 'block';
-        }
-    }
-
-    document.getElementById('form-novo-usuario').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const nu = document.getElementById('novo_usuario').value.trim();
-        const ns = document.getElementById('nova_senha').value;
-        if (nu && ns && !bancoUsuarios.some(u => u.user === nu)) {
-            database.ref('usuarios/' + nu).set({ user: nu, senha: ns });
-            alert(`Acesso para "${nu}" cadastrado!`);
-            document.getElementById('novo_usuario').value = '';
-            document.getElementById('nova_senha').value = '';
-        } else {
-            alert("Usuário inválido ou já existente.");
-        }
-    });
-
-    document.getElementById('form-saida').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const origem = document.getElementById('origem').value;
-        const destino = document.getElementById('destino').value;
-        const bitola = document.getElementById('bitola').value;
-        const paletes = parseInt(document.getElementById('paletes').value);
-        const caixasPorPalete = parseInt(document.getElementById('caixas_por_palete').value);
-
-        const caixasTotais = paletes * caixasPorPalete;
-        let totalMetrosViagem = 0;
-        if (bitola === "90x90") { totalMetrosViagem = caixasTotais * 3 * 0.81; } 
-        else if (bitola === "32x60") { totalMetrosViagem = caixasTotais * 2.30; }
-
-        const agora = new Date();
-        const horaSaidaTexto = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        let proximoId = 1;
-        if (viagens.length > 0) { proximoId = Math.max(...viagens.map(v => v.id)) + 1; }
-
-        const novaViagem = {
-            id: proximoId, origem, destino, bitola, paletes, caixas: caixasTotais, metros: totalMetrosViagem,
-            timestampSaida: agora.getTime(), horaSaida: horaSaidaTexto, horaRetorno: "---", duracao: "---", status: "Em Trânsito"
-        };
-        database.ref('viagens/' + proximoId).set(novaViagem);
-        document.getElementById('caixas_por_palete').value = '';
-        document.getElementById('paletes').value = '1';
-    });
-
-    document.getElementById('form-entrada').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const idViagem = parseInt(document.getElementById('selecionar_viagem').value);
-        if(!idViagem) { alert("Selecione uma carreta ativa."); return; }
-
-        const viagem = viagens.find(v => v.id === idViagem);
-        if (viagem && viagem.status === "Em Trânsito") {
-            const agora = new Date();
-            const timestampRetorno = agora.getTime();
-            const diferencaMs = timestampRetorno - viagem.timestampSaida;
-            const totalMinutos = Math.floor(diferencaMs / 1000 / 60);
-            const horas = Math.floor(totalMinutos / 60);
-            const minutos = totalMinutos % 60;
-
-            viagem.horaRetorno = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            viagem.duracao = horas > 0 ? `${horas}h ${minutos}m` : `${minutos} min`;
-            viagem.status = "Concluído";
-            database.ref('viagens/' + idViagem).set(viagem);
-        }
-    });
-
-    function atualizarSelectEntrada() {
-        const select = document.getElementById('selecionar_viagem');
-        select.innerHTML = '<option value="">-- Selecione a Carreta --</option>';
-        const emTransito = viagens.filter(v => v.status === "Em Trânsito");
-        emTransito.forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v.id;
-            opt.innerText = `#${v.id} - De: ${v.origem} Para: ${v.destino}`;
-            select.appendChild(opt);
-        });
-    }
-
-    function atualizarTabela() {
-        const tbody = document.querySelector('#tabela-viagens tbody');
-        tbody.innerHTML = ''; 
-        viagens.forEach(v => {
-            const tr = document.createElement('tr');
-            let statusBadge = v.status === "Em Trânsito" ? `<span class="badge badge-transito">🚚 Na Rua</span>` : `<span class="badge badge-concluido">✔ Concluído</span>`;
-            tr.innerHTML = `
-                <td data-label="Nº"><strong>#${v.id}</strong></td>
-                <td data-label="Rota">${v.origem} ➔ ${v.destino}</td>
-                <td data-label="Bitola">${v.bitola}</td>
-                <td data-label="Carga">${v.paletes} Pl / ${v.caixas} Cx</td>
-                <td data-label="Metragem"><strong>${v.metros.toFixed(2)} m²</strong></td>
-                <td data-label="Saída">⏱ ${v.horaSaida}</td>
-                <td data-label="Retorno">⏱ ${v.horaRetorno}</td>
-                <td data-label="Duração"><strong>${v.duracao}</strong></td>
-                <td data-label="Status">${statusBadge}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-    }
-
-    function atualizarResumo() {
-        const totalViagens = viagens.length;
-        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
-        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
-        document.getElementById('resumo-viagens').innerText = totalViagens;
-        document.getElementById('resumo-paletes').innerText = totalPaletes;
-        document.getElementById('resumo-metros').innerText = totalMetros.toFixed(1) + " m²";
-    }
-
-    function enviarRelatorioWhatsApp() {
-        if (viagens.length === 0) {
-            alert("Nenhuma movimentação registrada hoje para gerar relatório!");
-            return;
-        }
-        const dataHoje = new Date().toLocaleDateString('pt-BR');
-        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
-        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
-
-        let texto = `📊 *RELATÓRIO DIÁRIO DE CARREGAMENTO - ${dataHoje}*\n`;
-        texto += `-----------------------------------------\n`;
-        texto += `🚚 *Total de Cargas:* ${viagens.length}\n`;
-        texto += `📦 *Total de Paletes:* ${totalPaletes} Pl\n`;
-        texto += `📐 *Metragem Total:* ${totalMetros.toFixed(2)} m²\n`;
-        texto += `-----------------------------------------\n\n`;
-        texto += `📋 *DETALHAMENTO DOS LANÇAMENTOS:*\n`;
-
-        viagens.forEach(v => {
-            const statusIcon = v.status === "Em Trânsito" ? "🚚" : "✅";
-            texto += `*Carga #${v.id}* [${statusIcon} ${v.status}]\n`;
-            texto += `• Rota: ${v.origem} ➔ ${v.destino}\n`;
-            texto += `• Carga: ${v.paletes} Pl / ${v.caixas} Cx (${v.bitola})\n`;
-            texto += `• Medida: ${v.metros.toFixed(2)} m²\n`;
-            texto += `• Saída: ${v.horaSaida} | Retorno: ${v.horaRetorno} (${v.duracao})\n\n`;
-        });
-
-        window.location.href = "https://api.whatsapp.com/send?text=" + encodeURIComponent(texto);
-    }
-
-    // NOVA FUNÇÃO EXCLUSIVA PARA GERAR PDF COMPLETO E LIMPO DIRETO NO CELULAR/MOBILE
-    function gerarDocumentoPDF() {
-        if (viagens.length === 0) {
-            alert("Sem dados registrados para exportar PDF!");
-            return;
+            listaUsuarios.push({user: nU, pass: nS, tipo: nT});
+            localStorage.setItem('usuarios', JSON.stringify(listaUsuarios));
+            alert('Conta de ' + nU + ' criada com sucesso!');
+            document.getElementById('novo-usuario').value = '';
+            document.getElementById('nova-senha').value = '';
         }
 
-        const dataHoje = new Date().toLocaleDateString('pt-BR');
-        const totalPaletes = viagens.reduce((acc, v) => acc + v.paletes, 0);
-        const totalMetros = viagens.reduce((acc, v) => acc + v.metros, 0);
+        // --- PERSISTÊNCIA DA MANUTENÇÃO DIÁRIA ---
+        function salvarManutencaoDiaria() {
+            let numMotor = document.getElementById('m-num-motor').value;
 
-        // Preenche a área invisível do PDF com as informações atualizadas
-        document.getElementById('pdf-data').innerText = dataHoje;
-        document.getElementById('pdf-total-viagens').innerText = viagens.length;
-        document.getElementById('pdf-resumo-paletes').innerText = totalPaletes + " Pl";
-        document.getElementById('pdf-resumo-metros').innerText = totalMetros.toFixed(2) + " m²";
+            // Regra de validação estrita: Não salva sem número de motor
+            if(!numMotor) {
+                alert('Erro: É obrigatório inserir o NÚMERO DO MOTOR antes de salvar!');
+                return;
+            }
 
-        const pdfTbody = document.querySelector('#pdf-tabela-dados tbody');
-        pdfTbody.innerHTML = '';
+            let registro = {
+                id: Date.now(),
+                data: new Date().toISOString().split('T')[0],
+                retifica: selecoesAtuais['m-retifica'] || 'Não selecionado',
+                grupo: selecoesAtuais['m-grupo'] || 'Não selecionado',
+                motor: numMotor,
+                componente: selecoesAtuais['m-comp'] || 'Não selecionado'
+            };
 
-        viagens.forEach(v => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><strong>#${v.id}</strong></td>
-                <td>${v.origem} para ${v.destino}</td>
-                <td>${v.bitola}</td>
-                <td>${v.paletes} Pl / ${v.caixas} Cx</td>
-                <td><strong>${v.metros.toFixed(2)} m²</strong></td>
-                <td>${v.horaSaida}</td>
-                <td>${v.horaRetorno}</td>
-                <td>${v.duracao}</td>
-                <td>${v.status}</td>
-            `;
-            pdfTbody.appendChild(tr);
-        });
+            bancoManutencao.push(registro);
+            localStorage.setItem('bancoManutencao', JSON.stringify(bancoManutencao));
 
-        // Configuração segura do gerador html2pdf para Android e iOS
-        const areaAlvo = document.getElementById('printable-report-area');
-        const opcoes = {
-            margin:       10,
-            filename:     `Relatorio_Carregamento_${dataHoje.replace(/\//g, '-')}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        };
+            // Se for troca de disco, lança automaticamente na lista de rastreio
+            if(registro.componente === 'Disco') {
+                bancoTrocaPecas.push({
+                    peca: `Disco substituído no Motor ${registro.motor} (${registro.retifica} - ${registro.grupo})`,
+                    data: registro.data
+                });
+                localStorage.setItem('bancoTrocaPecas', JSON.stringify(bancoTrocaPecas));
+            }
 
-        // Torna a div visível temporariamente, renderiza e esconde
-        areaAlvo.style.display = 'block';
-        html2pdf().set(opcoes).from(areaAlvo).save().then(() => {
-            areaAlvo.style.display = 'none';
-        }).catch(err => {
-            alert("Erro ao criar PDF. Use a opção de relatório por texto.");
-            areaAlvo.style.display = 'none';
-        });
-    }
+            alert('Manutenção Diária salva com sucesso!');
+            limparFormManutencao();
+        }
 
-    function mostrarPainelPrincipal() {
-        document.getElementById('tela-login').style.display = 'none';
-        document.getElementById('painel-principal').style.display = 'block';
-    }
-    function mostrarTelaLogin() {
-        document.getElementById('tela-login').style.display = 'flex';
-        document.getElementById('painel-principal').style.display = 'none';
-    }
-    function limparDados() { if(confirm("Deseja resetar todo o relatório da nuvem?")) { database.ref('viagens').remove(); } }
-    function fazerLogout() { sessionStorage.removeItem('usuario_logado'); usuarioLogado = null; mostrarTelaLogin(); }
-    function atualizarListaUsuariosVisual() {
-        const listaDiv = document.getElementById('lista-usuarios-cadastrados');
-        listaDiv.innerHTML = '<strong>Acessos Ativos:</strong><br>';
-        bancoUsuarios.forEach(u => { listaDiv.innerHTML += `• ${u.user}<br>`; });
-    }
-</script>
+        function limparFormManutencao() {
+            document.getElementById('m-num-motor').value = '';
+            document.querySelectorAll('.m-comp, .m-retifica, .m-grupo').forEach(b => b.classList.remove('selecionado'));
+            delete selecoesAtuais['m-comp'];
+        }
+
+        // --- PERSISTÊNCIA DA CORREIA ---
+        function salvarCorreia() {
+            // Regra de validação estrita: Nunca deixa salvar sem retifica e grupo
+            if(!selecoesAtuais['c-retifica'] || !selecoesAtuais['c-grupo']) {
+                alert('Erro: Você DEVE selecionar a Retífica E o Grupo antes de salvar!');
+                return;
+            }
+
+            let registro = {
+                id: Date.now(),
+                data: new Date().toISOString().split('T')[0],
+                retifica: selecoesAtuais['c-retifica'],
+                grupo: selecoesAtuais['c-grupo'],
+                posicao: selecoesAtuais['c-posicao'] || 'N/A',
+                mancalInferior: selecoesAtuais['c-mancal-inf'] || 'N/A',
+                mancalSuperior: selecoesAtuais['c-mancal-sup'] || 'N/A',
+                pressionadores: document.getElementById('c-pressionadores').value
+            };
+
+            bancoCorreias.push(registro);
+            localStorage.setItem('bancoCorreias', JSON.stringify(bancoCorreias));
+
+            // Registra histórico geral
+            bancoTrocaPecas.push({
+                peca: `Manutenção de Correia ${registro.posicao} em ${registro.retifica}`,
+                data: registro.data
+            });
+            localStorage.setItem('bancoTrocaPecas', JSON.stringify(bancoTrocaPecas));
+
+            alert('Dados da Correia salvos com sucesso!');
+            document.getElementById('c-pressionadores').value = '';
+            document.querySelectorAll('.c-retifica, .c-grupo, .c-posicao, .c-mancal-inf, .c-mancal-sup').forEach(b => b.classList.remove('selecionado'));
+        }
+
+        // --- PERSISTÊNCIA DO EMPURRADOR ---
+        function salvarEmpurrador() {
+            let registro = {
+                id: Date.now(),
+                data: new Date().toISOString().split('T')[0],
+                acoplamentoEmpurrador: selecoesAtuais['e-acop'] || 'N/A',
+                componente: selecoesAtuais['e-comp'] || 'N/A',
+                correiaEmpurrador: selecoesAtuais['e-correia'] || 'N/A',
+                centralizador: selecoesAtuais['e-centr'] || 'N/A'
+            };
+
+            bancoEmpurrador.push(registro);
+            localStorage.setItem('bancoEmpurrador', JSON.stringify(bancoEmpurrador));
+
+            bancoTrocaPecas.push({
+                peca: `Intervenção Empurrador: Comp [${registro.componente}] / Centralizador [${registro.centralizador}]`,
+                data: registro.data
+            });
+            localStorage.setItem('bancoTrocaPecas', JSON.stringify(bancoTrocaPecas));
+
+            alert('Dados do Empurrador salvos!');
+            document.querySelectorAll('.e-acop, .e-comp, .e-correia, .e-centr').forEach(b => b.classList.remove('selecionado'));
+        }
+
+        // --- CÁLCULO DE VIDA ÚTIL DOS DISCOS ---
+        function calcularVidaUtilDiscos() {
+            let container = document.getElementById('container-vida-util');
+            container.innerHTML = '';
+
+            // Filtra as manutenções focadas em trocas de 'Disco'
+            let trocasDiscos = bancoManutencao.filter(x => x.componente === 'Disco');
+
+            if(trocasDiscos.length === 0) {
+                container.innerHTML = '<p style="color: var(--cor-mutada); text-align: center; padding: 20px;">Nenhuma troca de disco registrada.</p>';
+                return;
+            }
+
+            // Agrupa registros por número do motor
+            let agrupadoPorMotor = {};
+            trocasDiscos.forEach(registro => {
+                if(!agrupadoPorMotor[registro.motor]) {
+                    agrupadoPorMotor[registro.motor] = [];
+                }
+                agrupadoPorMotor[registro.motor].push(registro);
+            });
+
+            // Ordena as trocas de cada motor por data e calcula a diferença de dias
+            for(let motor in agrupadoPorMotor) {
+                let lista = agrupadoPorMotor[motor].sort((a,b) => new Date(a.data) - new Date(b.data));
+                
+                let htmlMotor = `<div style="margin-bottom: 15px; border-bottom: 1px dashed var(--cor-borda); padding-bottom: 10px;">
+                    <strong style="color: var(--cor-primaria);">Motor Nº: ${motor}</strong>`;
+
+                if(lista.length < 2) {
+                    htmlMotor += `<div style="font-size:0.8rem; color: var(--cor-mutada); margin-left:10px;">Apenas 1 troca registrada em: ${lista[0].data}. Aguardando próximo registro para calcular ciclo.</div>`;
+                } else {
+                    for(let i = 1; i < lista.length; i++) {
+                        let dataAntiga = new Date(lista[i-1].data);
+                        let dataNova = new Date(lista[i].data);
+                        let diferencaTempo = Math.abs(dataNova - dataAntiga);
+                        let diferencaDias = Math.ceil(diferencaTempo / (1000 * 60 * 60 * 24));
+
+                        htmlMotor += `<div class="item-historico" style="margin-left: 10px; margin-top:5px;">
+                            <div>De <strong>${lista[i-1].data}</strong> até <strong>${lista[i].data}</strong></div>
+                            <div style="color: #f59e0b;">⏱️ Duração do Disco: <strong>${diferencaDias} dias</strong> ativo.</div>
+                        </div>`;
+                    }
+                }
+                htmlMotor += `</div>`;
+                container.innerHTML += htmlMotor;
+            }
+        }
+
+        // --- HISTÓRICO DE TROCA DE PEÇAS ---
+        function salvarTrocaPecaManual() {
+            let peca = document.getElementById('t-peca').value.trim();
+            let data = document.getElementById('t-data').value;
+
+            if(!peca || !data) {
+                alert('Preencha os campos de peça e data.');
+                return;
+            }
+
+            bancoTrocaPecas.push({peca, data});
+            localStorage.setItem('bancoTrocaPecas', JSON.stringify(bancoTrocaPecas));
+            alert('Peça inserida no acompanhamento!');
+            document.getElementById('t-peca').value = '';
+            renderizarHistoricoPecas();
+        }
+
+        function renderizarHistoricoPecas() {
+            let container = document.getElementById('container-historico-pecas');
+            container.innerHTML = '';
+
+            // Ordena o histórico por data mais recente
+            let listaOrdenada = bancoTrocaPecas.sort((a,b) => new Date(b.data) - new Date(a.data));
+
+            if(listaOrdenada.length === 0) {
+                container.innerHTML = '<p style="color: var(--cor-mutada); text-align: center; padding: 20px;">Nenhuma troca registrada.</p>';
+                return;
+            }
+
+            listaOrdenada.forEach(item => {
+                container.innerHTML += `
+                    <div class="item-historico">
+                        <div style="font-weight: bold; color: #fff;">${item.peca}</div>
+                        <div style="color: var(--cor-mutada); font-size: 0.75rem;">📅 Data da Troca: ${item.data}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- EMISSÃO DE RELATÓRIOS EM TEXTO ---
+        function gerarRelatorio(tipo) {
+            let textoRelatorio = "";
+            
+            if(tipo === 'diaria') {
+                textoRelatorio = "=== RELATÓRIO DE MANUTENÇÃO DIÁRIA ===\n\n";
+                bancoManutencao.forEach(m => {
+                    textoRelatorio += `Data: ${m.data} | Retifica: ${m.retifica} | Grupo: ${m.grupo} | Motor: ${m.motor} | Peça: ${m.componente}\n-----------------------------------\n`;
+                });
+            } else if (tipo === 'empurrador') {
+                textoRelatorio = "=== RELATÓRIO DO EMPURRADOR ===\n\n";
+                bancoEmpurrador.forEach(e => {
+                    textoRelatorio += `Data: ${e.data} | Acoplamento: ${e.acoplamentoEmpurrador} | Item: ${e.componente} | Correia Emp.: ${e.correiaEmpurrador} | Centralizador: ${e.centralizador}\n-----------------------------------\n`;
+                });
+            }
+
+            // Cria download simples no mobile/computador
+            let blob = new Blob([textoRelatorio], {type: "text/plain;charset=utf-8"});
+            let link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `relatorio-${tipo}-${new Date().toISOString().split('T')[0]}.txt`;
+            link.click();
+        }
+    </script>
 </body>
 </html>
