@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta data-versao="1.0.5">
+    <meta data-versao="1.0.7">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQUADRADRY - Gestão de Manutenção</title>
     
-    <!-- Configuração de Segurança Avançada contra bloqueios de Navegador -->
+    <!-- Força requisições seguras para o Firebase -->
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     
-    <!-- Scripts oficiais e homologados pela Google (Firebase v10 Compat) -->
+    <!-- Scripts oficiais Firebase v10 Compat -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
@@ -53,14 +53,75 @@
             letter-spacing: 1px;
         }
 
+        /* NOVA TELA DE LOGIN ESTILO PAINEL INDUSTRIAL */
         #tela-login {
-            max-width: 400px;
-            margin: 40px auto;
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            max-width: 450px;
+            margin: 30px auto;
+            background: linear-gradient(145deg, #1c2434, #151b26);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #2e3b52;
+            text-align: center;
+        }
+
+        .login-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--cor-primaria);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .login-aviso-privado {
+            font-size: 0.75rem;
+            color: var(--cor-mutada);
+            margin-bottom: 25px;
+            line-height: 1.4;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #f59e0b;
+        }
+
+        .bloco-terminal {
+            background: #0f141c;
             border: 1px solid var(--cor-borda);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .bloco-terminal label {
+            color: var(--cor-primaria);
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .bloco-terminal input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #2e3b52;
+            border-radius: 0;
+            padding: 8px 0;
+            color: #fff;
+            font-size: 1.1rem;
+            font-family: 'Courier New', Courier, monospace;
+            width: 100%;
+            outline: none;
+        }
+
+        .bloco-terminal input:focus {
+            border-bottom-color: var(--cor-primaria);
         }
 
         #painel-principal {
@@ -148,7 +209,6 @@
             border-radius: 8px;
             font-size: 1rem;
             outline: none;
-            /* Proteção para garantir digitação mesmo sob restrições do navegador */
             pointer-events: auto !important;
             -webkit-user-select: text !important;
             user-select: text !important;
@@ -207,17 +267,28 @@
         <h1>SQUADRADRY</h1>
     </header>
 
+    <!-- NOVA TELA DE LOGIN ATUALIZADA CONTRA BLOQUEIOS -->
     <div id="tela-login">
-        <h2 style="margin-bottom: 15px; font-size: 1.2rem; text-align: center;">Acesso ao Sistema</h2>
-        <div class="campo-grupo">
-            <label>Usuário</label>
-            <input type="text" id="login-usuario" placeholder="Digite seu usuário" autocomplete="username">
+        <span class="login-badge">CONEXÃO NODE DE MANUTENÇÃO</span>
+        <h2 style="margin-bottom: 10px; font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: 0.5px;">SQUADRADRY OS</h2>
+        
+        <div class="login-aviso-privado">
+            Aviso: Terminal privado restrito à equipe técnica autorizada. Atividades de registro e telemetria sincronizadas em tempo real.
         </div>
-        <div class="campo-grupo">
-            <label>Senha</label>
-            <input type="password" id="login-senha" placeholder="Digite sua senha" autocomplete="current-password">
+
+        <div class="bloco-terminal">
+            <label>> OPERADOR_ID:</label>
+            <input type="text" id="login-usuario" placeholder="Insira o identificador" autocomplete="off">
         </div>
-        <button class="btn-acao" onclick="efetuarLogin()">Entrar</button>
+
+        <div class="bloco-terminal">
+            <label>> ACESSO_TOKEN:</label>
+            <input type="password" id="login-senha" placeholder="••••••••" autocomplete="off">
+        </div>
+
+        <button class="btn-acao" style="background: linear-gradient(to right, #10b981, #059669); box-shadow: 0 4px 12px rgba(16,185,129,0.3);" onclick="efetuarLogin()">
+            INICIALIZAR MÓDULO_
+        </button>
     </div>
 
     <div id="painel-principal">
@@ -405,7 +476,6 @@
     </div>
 
     <script>
-        // Inicialização Segura do Firebase
         const firebaseConfig = { databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/" };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
@@ -432,7 +502,6 @@
             });
         }
 
-        // Sincronização em tempo real com barreira contra falhas
         database.ref('usuarios').on('value', (snapshot) => {
             const dados = snapshot.val();
             if (dados) bancoUsuarios = Object.values(dados);
@@ -492,7 +561,7 @@
                 document.getElementById('tela-login').style.display = 'none';
                 document.getElementById('painel-principal').style.display = 'block';
             } else {
-                alert('Usuário ou senha incorretos!');
+                alert('Credenciais incorretas ou inválidas para este terminal.');
             }
         }
 
@@ -568,6 +637,7 @@
             document.getElementById('t-peca').value = '';
         }
 
+        // ... resto das funções de cálculo inalteradas ...
         function calcularVidaUtilDiscos() {
             let container = document.getElementById('container-vida-util');
             if(!container) return; container.innerHTML = '';
