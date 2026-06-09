@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQUADRADRY - Gestão de Manutenção</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         :root {
             --bg-principal: #121824;
@@ -419,28 +423,71 @@
     </div>
 
     <script>
-        // --- BANCO DE DADOS LOCAL (Simulado) ---
-        if(!localStorage.getItem('usuarios')) {
-            localStorage.setItem('usuarios', JSON.stringify([
-                {user: 'admin', pass: 'admin123', tipo: 'admin'},
-                {user: 'operador', pass: '1234', tipo: 'operador'}
-            ]));
-        }
-        
-        let bancoManutencao = JSON.parse(localStorage.getItem('bancoManutencao')) || [];
-        let bancoCorreias = JSON.parse(localStorage.getItem('bancoCorreias')) || [];
-        let bancoEmpurrador = JSON.parse(localStorage.getItem('bancoEmpurrador')) || [];
-        let bancoTrocaPecas = JSON.parse(localStorage.getItem('bancoTrocaPecas')) || [];
+        // --- 1. CONFIGURAÇÃO E INICIALIZAÇÃO DO FIREBASE ---
+        const firebaseConfig = { 
+            databaseURL: "https://expedicao-sergio-default-rtdb.firebaseio.com/" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-        // --- CONTROLE DE SELEÇÃO ATIVA DOS BOTÕES ---
+        // --- 2. ARMAZENAMENTO LOCAL DOS DADOS (SINCRONIZADOS COM FIREBASE) ---
+        let bancoUsuarios = [];
+        let bancoManutencao = [];
+        let bancoCorreias = [];
+        let bancoEmpurrador = [];
+        let bancoTrocaPecas = [];
+
         let selecoesAtuais = {};
+        let usuarioLogado = null;
 
-        function verificarSessao() {
-            // Garante início limpo para demonstração
+        // --- 3. ESCUTADORES EM TEMPO REAL (FIREBASE) ---
+        
+        // Sincroniza Usuários e cria o padrão caso o banco esteja vazio
+        database.ref('usuarios').on('value', (snapshot) => {
+            const dados = snapshot.val();
+            if (dados) {
+                bancoUsuarios = Object.values(dados);
+            } else {
+                // Banco inicial padrão se estiver totalmente vazio
+                const usuariosPadrao = [
+                    {user: 'admin', pass: 'admin123', tipo: 'admin'},
+                    {user: 'operador', pass: '1234', tipo: 'operador'}
+                ];
+                usuariosPadrao.forEach(u => database.ref('usuarios').push(u));
+            }
+        });
+
+        // Sincroniza Manutenção Diária
+        database.ref('bancoManutencao').on('value', (snapshot) => {
+            const dados = snapshot.val();
+            bancoManutencao = dados ? Object.values(dados) : [];
+            calcularVidaUtilDiscos();
+        });
+
+        // Sincroniza Correias
+        database.ref('bancoCorreias').on('value', (snapshot) => {
+            const dados = snapshot.val();
+            bancoCorreias = dados ? Object.values(dados) : [];
+        });
+
+        // Sincroniza Empurrador
+        database.ref('bancoEmpurrador').on('value', (snapshot) => {
+            const dados = snapshot.val();
+            bancoEmpurrador = dados ? Object.values(dados) : [];
+        });
+
+        // Sincroniza Troca de Peças Geral
+        database.ref('bancoTrocaPecas').on('value', (snapshot) => {
+            const dados = snapshot.val();
+            bancoTrocaPecas = dados ? Object.values(dados) : [];
+            renderizarHistoricoPecas();
+        });
+
+        window.onload = function() {
             document.getElementById('t-data').valueAsDate = new Date();
-        }
-        window.onload = verificarSessao;
+        };
 
+        // --- 4. CONTROLE DE INTERFACE (ABAS E SELETORES) ---
         function mudarAba(idAba, botao) {
             document.querySelectorAll('.conteudo-aba').forEach(aba => aba.classList.remove('ativa'));
             document.querySelectorAll('.aba-btn').forEach(btn => btn.classList.remove('ativa'));
@@ -458,15 +505,16 @@
             selecoesAtuais[grupo] = valor;
         }
 
-        // --- SISTEMA DE LOGIN E CADASTRO DE CONTAS ---
-        let usuarioLogado = null;
+        // --- 5. SISTEMA DE LOGIN E CADASTRO ---
+        function efetuaraLogin() { // Mantida compatibilidade com a chamada do botão
+            efetuarLogin();
+        }
 
         function efetuarLogin() {
-            let u = document.getElementById('login-usuario').value;
-            let s = document.getElementById('login-senha').value;
-            let listaUsuarios = JSON.parse(localStorage.getItem('usuarios'));
+            let u = document.getElementById('login-usuario').value.trim();
+            let s = document.getElementById('login-senha').value.trim();
 
-            let conta = listaUsuarios.find(x => x.user === u && x.pass === s);
+            let conta = bancoUsuarios.find(x => x.user === u && x.pass === s);
 
             if(conta) {
                 usuarioLogado = conta;
@@ -495,31 +543,30 @@
                 return;
             }
 
-            let listaUsuarios = JSON.parse(localStorage.getItem('usuarios'));
-            if(listaUsuarios.some(x => x.user === nU)) {
+            if(bancoUsuarios.some(x => x.user === nU)) {
                 alert('Este usuário já existe!');
                 return;
             }
 
-            listaUsuarios.push({user: nU, pass: nS, tipo: nT});
-            localStorage.setItem('usuarios', JSON.stringify(listaUsuarios));
-            alert('Conta de ' + nU + ' criada com sucesso!');
+            // Grava diretamente no nó de usuários do Firebase
+            database.ref('usuarios').push({user: nU, pass: nS, tipo: nT});
+            
+            alert('Conta de ' + nU + ' criada e salva no Firebase com sucesso!');
             document.getElementById('novo-usuario').value = '';
             document.getElementById('nova-senha').value = '';
         }
 
-        // --- PERSISTÊNCIA DA MANUTENÇÃO DIÁRIA ---
+        // --- 6. PERSISTÊNCIA DE DADOS NO FIREBASE ---
+
         function salvarManutencaoDiaria() {
             let numMotor = document.getElementById('m-num-motor').value;
 
-            // Regra de validação estrita: Não salva sem número de motor
             if(!numMotor) {
                 alert('Erro: É obrigatório inserir o NÚMERO DO MOTOR antes de salvar!');
                 return;
             }
 
             let registro = {
-                id: Date.now(),
                 data: new Date().toISOString().split('T')[0],
                 retifica: selecoesAtuais['m-retifica'] || 'Não selecionado',
                 grupo: selecoesAtuais['m-grupo'] || 'Não selecionado',
@@ -527,19 +574,18 @@
                 componente: selecoesAtuais['m-comp'] || 'Não selecionado'
             };
 
-            bancoManutencao.push(registro);
-            localStorage.setItem('bancoManutencao', JSON.stringify(bancoManutencao));
+            // Envia para o nó bancoManutencao no Firebase
+            database.ref('bancoManutencao').push(registro);
 
-            // Se for troca de disco, lança automaticamente na lista de rastreio
+            // Se for troca de disco, lança também no histórico geral
             if(registro.componente === 'Disco') {
-                bancoTrocaPecas.push({
+                database.ref('bancoTrocaPecas').push({
                     peca: `Disco substituído no Motor ${registro.motor} (${registro.retifica} - ${registro.grupo})`,
                     data: registro.data
                 });
-                localStorage.setItem('bancoTrocaPecas', JSON.stringify(bancoTrocaPecas));
             }
 
-            alert('Manutenção Diária salva com sucesso!');
+            alert('Manutenção Diária salva no Firebase!');
             limparFormManutencao();
         }
 
@@ -549,16 +595,13 @@
             delete selecoesAtuais['m-comp'];
         }
 
-        // --- PERSISTÊNCIA DA CORREIA ---
         function salvarCorreia() {
-            // Regra de validação estrita: Nunca deixa salvar sem retifica e grupo
             if(!selecoesAtuais['c-retifica'] || !selecoesAtuais['c-grupo']) {
                 alert('Erro: Você DEVE selecionar a Retífica E o Grupo antes de salvar!');
                 return;
             }
 
             let registro = {
-                id: Date.now(),
                 data: new Date().toISOString().split('T')[0],
                 retifica: selecoesAtuais['c-retifica'],
                 grupo: selecoesAtuais['c-grupo'],
@@ -568,25 +611,20 @@
                 pressionadores: document.getElementById('c-pressionadores').value
             };
 
-            bancoCorreias.push(registro);
-            localStorage.setItem('bancoCorreias', JSON.stringify(bancoCorreias));
+            database.ref('bancoCorreias').push(registro);
 
-            // Registra histórico geral
-            bancoTrocaPecas.push({
+            database.ref('bancoTrocaPecas').push({
                 peca: `Manutenção de Correia ${registro.posicao} em ${registro.retifica}`,
                 data: registro.data
             });
-            localStorage.setItem('bancoTrocaPecas', JSON.stringify(bancoTrocaPecas));
 
-            alert('Dados da Correia salvos com sucesso!');
+            alert('Dados da Correia salvos no Firebase!');
             document.getElementById('c-pressionadores').value = '';
             document.querySelectorAll('.c-retifica, .c-grupo, .c-posicao, .c-mancal-inf, .c-mancal-sup').forEach(b => b.classList.remove('selecionado'));
         }
 
-        // --- PERSISTÊNCIA DO EMPURRADOR ---
         function salvarEmpurrador() {
             let registro = {
-                id: Date.now(),
                 data: new Date().toISOString().split('T')[0],
                 acoplamentoEmpurrador: selecoesAtuais['e-acop'] || 'N/A',
                 componente: selecoesAtuais['e-comp'] || 'N/A',
@@ -594,25 +632,39 @@
                 centralizador: selecoesAtuais['e-centr'] || 'N/A'
             };
 
-            bancoEmpurrador.push(registro);
-            localStorage.setItem('bancoEmpurrador', JSON.stringify(bancoEmpurrador));
+            database.ref('bancoEmpurrador').push(registro);
 
-            bancoTrocaPecas.push({
+            database.ref('bancoTrocaPecas').push({
                 peca: `Intervenção Empurrador: Comp [${registro.componente}] / Centralizador [${registro.centralizador}]`,
                 data: registro.data
             });
-            localStorage.setItem('bancoTrocaPecas', JSON.stringify(bancoTrocaPecas));
 
-            alert('Dados do Empurrador salvos!');
+            alert('Dados do Empurrador salvos no Firebase!');
             document.querySelectorAll('.e-acop, .e-comp, .e-correia, .e-centr').forEach(b => b.classList.remove('selecionado'));
         }
 
-        // --- CÁLCULO DE VIDA ÚTIL DOS DISCOS ---
+        function salvarTrocaPecaManual() {
+            let peca = document.getElementById('t-peca').value.trim();
+            let data = document.getElementById('t-data').value;
+
+            if(!peca || !data) {
+                alert('Preencha os campos de peça e data.');
+                return;
+            }
+
+            database.ref('bancoTrocaPecas').push({peca, data});
+            
+            alert('Peça inserida no Firebase!');
+            document.getElementById('t-peca').value = '';
+        }
+
+        // --- 7. PROCESSAMENTO E VISUALIZAÇÃO DE RELATÓRIOS ---
+
         function calcularVidaUtilDiscos() {
             let container = document.getElementById('container-vida-util');
+            if(!container) return;
             container.innerHTML = '';
 
-            // Filtra as manutenções focadas em trocas de 'Disco'
             let trocasDiscos = bancoManutencao.filter(x => x.componente === 'Disco');
 
             if(trocasDiscos.length === 0) {
@@ -620,7 +672,6 @@
                 return;
             }
 
-            // Agrupa registros por número do motor
             let agrupadoPorMotor = {};
             trocasDiscos.forEach(registro => {
                 if(!agrupadoPorMotor[registro.motor]) {
@@ -629,7 +680,6 @@
                 agrupadoPorMotor[registro.motor].push(registro);
             });
 
-            // Ordena as trocas de cada motor por data e calcula a diferença de dias
             for(let motor in agrupadoPorMotor) {
                 let lista = agrupadoPorMotor[motor].sort((a,b) => new Date(a.data) - new Date(b.data));
                 
@@ -637,7 +687,7 @@
                     <strong style="color: var(--cor-primaria);">Motor Nº: ${motor}</strong>`;
 
                 if(lista.length < 2) {
-                    htmlMotor += `<div style="font-size:0.8rem; color: var(--cor-mutada); margin-left:10px;">Apenas 1 troca registrada em: ${lista[0].data}. Aguardando próximo registro para calcular ciclo.</div>`;
+                    htmlMotor += `<div style="font-size:0.8rem; color: var(--cor-mutada); margin-left:10px;">Apenas 1 troca registrada em: ${lista[0].data}. Aguardando próximo registro.</div>`;
                 } else {
                     for(let i = 1; i < lista.length; i++) {
                         let dataAntiga = new Date(lista[i-1].data);
@@ -656,28 +706,11 @@
             }
         }
 
-        // --- HISTÓRICO DE TROCA DE PEÇAS ---
-        function salvarTrocaPecaManual() {
-            let peca = document.getElementById('t-peca').value.trim();
-            let data = document.getElementById('t-data').value;
-
-            if(!peca || !data) {
-                alert('Preencha os campos de peça e data.');
-                return;
-            }
-
-            bancoTrocaPecas.push({peca, data});
-            localStorage.setItem('bancoTrocaPecas', JSON.stringify(bancoTrocaPecas));
-            alert('Peça inserida no acompanhamento!');
-            document.getElementById('t-peca').value = '';
-            renderizarHistoricoPecas();
-        }
-
         function renderizarHistoricoPecas() {
             let container = document.getElementById('container-historico-pecas');
+            if(!container) return;
             container.innerHTML = '';
 
-            // Ordena o histórico por data mais recente
             let listaOrdenada = bancoTrocaPecas.sort((a,b) => new Date(b.data) - new Date(a.data));
 
             if(listaOrdenada.length === 0) {
@@ -695,7 +728,6 @@
             });
         }
 
-        // --- EMISSÃO DE RELATÓRIOS EM TEXTO ---
         function gerarRelatorio(tipo) {
             let textoRelatorio = "";
             
@@ -711,7 +743,6 @@
                 });
             }
 
-            // Cria download simples no mobile/computador
             let blob = new Blob([textoRelatorio], {type: "text/plain;charset=utf-8"});
             let link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
