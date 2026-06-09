@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta data-versao="1.0.3">
-    
+    <meta data-versao="1.0.4">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQUADRADRY - Gestão de Manutenção</title>
     
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
         :root {
             --bg-principal: #121824;
             --bg-card: #1c2434;
             --bg-input: #26324a;
-            --cor-primaria: #10b981; /* Verde Esmeralda */
+            --cor-primaria: #10b981; 
             --cor-primaria-hover: #059669;
             --cor-texto: #f3f4f6;
             --cor-mutada: #9ca3af;
@@ -52,7 +51,6 @@
             letter-spacing: 1px;
         }
 
-        /* --- TELA DE LOGIN --- */
         #tela-login {
             max-width: 400px;
             margin: 40px auto;
@@ -63,7 +61,6 @@
             border: 1px solid var(--cor-borda);
         }
 
-        /* --- NAVEGAÇÃO POR ABAS (Mobile Friendly) --- */
         #painel-principal {
             display: none;
             max-width: 600px;
@@ -106,7 +103,6 @@
             border-color: var(--cor-primaria);
         }
 
-        /* Aba exclusiva de Admin (escondida por padrão) */
         #aba-btn-admin {
             display: none;
             border: 1px solid #3b82f6;
@@ -126,7 +122,6 @@
             display: block;
         }
 
-        /* --- FORMULÁRIOS E ESTRUTURA --- */
         .retangulo {
             background: var(--bg-card);
             border: 1px solid var(--cor-borda);
@@ -171,13 +166,16 @@
             border-radius: 8px;
             font-size: 1rem;
             outline: none;
+            /* Força os campos a aceitarem digitação mesmo se houver erro de segurança no topo */
+            pointer-events: auto !important;
+            -webkit-user-select: text !important;
+            user-select: text !important;
         }
 
         input:focus, select:focus {
             border-color: var(--cor-primaria);
         }
 
-        /* --- BOTÕES DE SELEÇÃO ATIVOS/INATIVOS --- */
         .btn-seletor {
             background: var(--bg-input);
             color: var(--cor-texto);
@@ -198,7 +196,6 @@
             box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
         }
 
-        /* --- BOTÕES DE AÇÃO PRINCIPAL --- */
         .btn-acao {
             width: 100%;
             background: var(--cor-primaria);
@@ -218,11 +215,10 @@
         }
 
         .btn-relatorio {
-            background: #3b82f6; /* Azul */
+            background: #3b82f6; 
             margin-top: 15px;
         }
 
-        /* --- ESTILOS DE TABELA E HISTÓRICO --- */
         .historico-container {
             max-height: 300px;
             overflow-y: auto;
@@ -253,11 +249,11 @@
         <h2 style="margin-bottom: 15px; font-size: 1.2rem; text-align: center;">Acesso ao Sistema</h2>
         <div class="campo-grupo">
             <label>Usuário</label>
-            <input type="text" id="login-usuario" placeholder="Digite seu usuário">
+            <input type="text" id="login-usuario" placeholder="Digite seu usuário" autocomplete="username">
         </div>
         <div class="campo-grupo">
             <label>Senha</label>
-            <input type="password" id="login-senha" placeholder="Digite sua senha">
+            <input type="password" id="login-senha" placeholder="Digite sua senha" autocomplete="current-password">
         </div>
         <button class="btn-acao" onclick="efetuarLogin()">Entrar</button>
     </div>
@@ -466,32 +462,26 @@
 
         // --- 3. SISTEMA EXCLUSIVO DE ATUALIZAÇÃO AUTOMÁTICA ---
         function checarAtualizacaoAoEntrar() {
-            // Pega a versão registrada na tag meta do HTML
             const metaVersao = document.querySelector('meta[data-versao]');
             if (!metaVersao) return;
             const versaoLocal = metaVersao.getAttribute('data-versao');
 
-            // Verifica apenas UMA VEZ ao carregar o app para evitar loops
             database.ref('versao_sistema').once('value').then((snapshot) => {
                 const versaoNuvem = snapshot.val();
                 
                 if (!versaoNuvem) {
-                    // Se não houver registro no Firebase, inicializa com a versão local
                     database.ref('versao_sistema').set(versaoLocal);
                 } else if (versaoNuvem !== versaoLocal) {
-                    console.log('Nova atualização identificada. Limpando cache e recarregando...');
-                    // Força o reload completo ignorando o cache local do navegador
                     window.location.reload(true);
                 }
             }).catch(err => console.error("Erro na verificação de versão:", err));
         }
 
-        // Função do painel ADM para disparar a atualização geral
         function forcarNovaVersaoBD() {
-            const hashIdentificador = "v1.0." + Date.now(); // Gera uma chave única por data/hora
+            const hashIdentificador = "v1.0." + Date.now(); 
             database.ref('versao_sistema').set(hashIdentificador, (error) => {
                 if(!error) {
-                    alert('Sucesso! O comando foi enviado. Quando os operadores abrirem o link, o aplicativo vai atualizar sozinho.');
+                    alert('Sucesso! O comando foi enviado. O aplicativo irá atualizar sozinho na próxima inicialização.');
                 } else {
                     alert('Erro ao sincronizar comando no Firebase.');
                 }
@@ -536,7 +526,6 @@
 
         window.onload = function() {
             document.getElementById('t-data').valueAsDate = new Date();
-            // Executa a verificação no exato milissegundo em que o app abre
             checarAtualizacaoAoEntrar();
         };
 
@@ -559,7 +548,7 @@
         }
 
         // --- 6. SISTEMA DE LOGIN E CADASTRO ---
-        function efetuarLogin() {
+        function efectuarLogin() {
             let u = document.getElementById('login-usuario').value.trim();
             let s = document.getElementById('login-senha').value.trim();
 
@@ -634,7 +623,6 @@
             limparFormManutencao();
         }
 
-        // Correção de bug de limpeza de campos nas seleções
         function limparFormManutencao() {
             document.getElementById('m-num-motor').value = '';
             document.querySelectorAll('.m-comp, .m-retifica, .m-grupo').forEach(b => b.classList.remove('selecionado'));
