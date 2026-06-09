@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta data-versao="1.0.1">
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQUADRADRY - Gestão de Manutenção</title>
@@ -436,12 +434,6 @@
                 </div>
                 <button class="btn-acao" style="background: #3b82f6;" onclick="cadastrarUsuario()">Criar e Salvar Conta</button>
             </div>
-
-            <div class="retangulo" style="border-color: #f59e0b;">
-                <div class="retangulo-titulo" style="color: #f59e0b;">🔄 Controle de Cache da Aplicação</div>
-                <p style="font-size: 0.85rem; color: var(--cor-mutada); margin-bottom: 10px;">Caso faça alterações no código, use este botão para forçar todos os celulares conectados a atualizarem instantaneamente.</p>
-                <button class="btn-acao" style="background: #f59e0b;" onclick="incrementarVersaoBD()">Forçar Atualização Geral</button>
-            </div>
         </div>
 
     </div>
@@ -464,36 +456,7 @@
         let selecoesAtuais = {};
         let usuarioLogado = null;
 
-        // --- 3. SISTEMA INTEGRADO DE LIMPEZA DE CACHE AUTOMÁTICO ---
-        function gerenciarControleDeVersao() {
-            // Obtém a versão escrita na tag <meta> lá no início do HTML
-            const versaoLocal = document.querySelector('meta[data-versao]').getAttribute('data-versao');
-
-            database.ref('versao_sistema').on('value', (snapshot) => {
-                const versaoNuvem = snapshot.val();
-                
-                if (!versaoNuvem) {
-                    // Inicializa a versão no banco se ela não existir
-                    database.ref('versao_sistema').set(versaoLocal);
-                } else if (versaoNuvem !== versaoLocal) {
-                    console.log('Nova versão detectada! Atualizando cache...');
-                    // Força um recarregamento limpando o cache interno da página (F5 pesado)
-                    window.location.reload(true);
-                }
-            });
-        }
-
-        // Função executada apenas pelo Admin para forçar a atualização de todo mundo
-        function incrementarVersaoBD() {
-            const novaVersao = "1.0." + Date.now(); // Gera uma hash única baseada no tempo
-            database.ref('versao_sistema').set(novaVersao, (error) => {
-                if(!error) {
-                    alert('Comando enviado! Todos os celulares conectados serão atualizados agora.');
-                }
-            });
-        }
-
-        // --- 4. ESCUTADORES EM TEMPO REAL (FIREBASE) ---
+        // --- 3. ESCUTADORES EM TEMPO REAL (FIREBASE) ---
         database.ref('usuarios').on('value', (snapshot) => {
             const dados = snapshot.val();
             if (dados) {
@@ -531,11 +494,9 @@
 
         window.onload = function() {
             document.getElementById('t-data').valueAsDate = new Date();
-            // Executa a checagem automática de versão assim que o app abre
-            gerenciarControleDeVersao();
         };
 
-        // --- 5. CONTROLE DE INTERFACE (ABAS) ---
+        // --- 4. CONTROLE DE INTERFACE (ABAS) ---
         function mudarAba(idAba, botao) {
             document.querySelectorAll('.conteudo-aba').forEach(aba => aba.classList.remove('ativa'));
             document.querySelectorAll('.aba-btn').forEach(btn => btn.classList.remove('ativa'));
@@ -553,7 +514,7 @@
             selecoesAtuais[grupo] = valor;
         }
 
-        // --- 6. SISTEMA DE LOGIN E CADASTRO ---
+        // --- 5. SISTEMA DE LOGIN E CADASTRO ---
         function efetuarLogin() {
             let u = document.getElementById('login-usuario').value.trim();
             let s = document.getElementById('login-senha').value.trim();
@@ -564,6 +525,7 @@
                 usuarioLogado = conta;
                 alert('Acesso concedido. Bem-vindo, ' + conta.user);
                 
+                // Exibe a aba de Administração apenas se for Admin
                 if(conta.tipo === 'admin') {
                     document.getElementById('aba-btn-admin').style.display = 'inline-block';
                 } else {
@@ -599,7 +561,7 @@
             document.getElementById('nova-senha').value = '';
         }
 
-        // --- 7. PERSISTÊNCIA DOS FORMULÁRIOS ---
+        // --- 6. PERSISTÊNCIA DOS FORMULÁRIOS ---
         function salvarManutencaoDiaria() {
             let numMotor = document.getElementById('m-num-motor').value;
 
@@ -697,7 +659,7 @@
             document.getElementById('t-peca').value = '';
         }
 
-        // --- 8. RELATÓRIOS E PROCESSO DE VIDA ÚTIL ---
+        // --- 7. RELATÓRIOS E PROCESSO DE VIDA ÚTIL ---
         function calcularVidaUtilDiscos() {
             let container = document.getElementById('container-vida-util');
             if(!container) return;
@@ -744,7 +706,6 @@
             }
         }
 
-        // Renderização da linha do tempo
         function renderizarHistoricoPecas() {
             let container = document.getElementById('container-historico-pecas');
             if(!container) return;
