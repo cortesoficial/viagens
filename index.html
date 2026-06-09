@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <meta data-versao="1.0.2">
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQUADRADRY - Gestão de Manutenção</title>
@@ -434,6 +436,12 @@
                 </div>
                 <button class="btn-acao" style="background: #3b82f6;" onclick="cadastrarUsuario()">Criar e Salvar Conta</button>
             </div>
+
+            <div class="retangulo" style="border-color: #f59e0b;">
+                <div class="retangulo-titulo" style="color: #f59e0b;">🔄 Controle de Cache da Aplicação</div>
+                <p style="font-size: 0.85rem; color: var(--cor-mutada); margin-bottom: 10px;">Caso faça alterações no código, use este botão para forçar todos os celulares conectados a atualizarem instantaneamente na próxima entrada.</p>
+                <button class="btn-acao" style="background: #f59e0b;" onclick="incrementarVersaoBD()">Forçar Atualização Geral</button>
+            </div>
         </div>
 
     </div>
@@ -456,7 +464,37 @@
         let selecoesAtuais = {};
         let usuarioLogado = null;
 
-        // --- 3. ESCUTADORES EM TEMPO REAL (FIREBASE) ---
+        // --- 3. SISTEMA DE VERIFICAÇÃO DE ATUALIZAÇÃO AO ENTRAR ---
+        function gerenciarControleDeVersao() {
+            // Pega a string de versão local definida na tag <meta> no início do código HTML
+            const versaoLocal = document.querySelector('meta[data-versao]').getAttribute('data-versao');
+
+            // .once('value') faz a checagem apenas UMA VEZ (exatamente ao entrar no app)
+            database.ref('versao_sistema').once('value').then((snapshot) => {
+                const versaoNuvem = snapshot.val();
+                
+                if (!versaoNuvem) {
+                    // Se não existir versão gravada na nuvem ainda, define a atual
+                    database.ref('versao_sistema').set(versaoLocal);
+                } else if (versaoNuvem !== versaoLocal) {
+                    console.log('Nova atualização encontrada! Recarregando aplicação...');
+                    // Executa um recarregamento forçado limpando caches de arquivos antigos
+                    window.location.reload(true);
+                }
+            });
+        }
+
+        // Função executada apenas pelo Admin para lançar uma nova versão na nuvem
+        function incrementarVersaoBD() {
+            const novaVersao = "1.0." + Date.now(); // Cria um identificador único com carimbo de tempo
+            database.ref('versao_sistema').set(novaVersao, (error) => {
+                if(!error) {
+                    alert('Sucesso! Na próxima vez que qualquer operador abrir o aplicativo, ele atualizará automaticamente.');
+                }
+            });
+        }
+
+        // --- 4. ESCUTADORES EM TEMPO REAL (FIREBASE) ---
         database.ref('usuarios').on('value', (snapshot) => {
             const dados = snapshot.val();
             if (dados) {
@@ -494,9 +532,11 @@
 
         window.onload = function() {
             document.getElementById('t-data').valueAsDate = new Date();
+            // Executa a verificação automática de atualização IMEDIATAMENTE ao entrar no app
+            gerenciarControleDeVersao();
         };
 
-        // --- 4. CONTROLE DE INTERFACE (ABAS) ---
+        // --- 5. CONTROLE DE INTERFACE (ABAS) ---
         function mudarAba(idAba, botao) {
             document.querySelectorAll('.conteudo-aba').forEach(aba => aba.classList.remove('ativa'));
             document.querySelectorAll('.aba-btn').forEach(btn => btn.classList.remove('ativa'));
@@ -514,7 +554,7 @@
             selecoesAtuais[grupo] = valor;
         }
 
-        // --- 5. SISTEMA DE LOGIN E CADASTRO ---
+        // --- 6. SISTEMA DE LOGIN E CADASTRO ---
         function efetuarLogin() {
             let u = document.getElementById('login-usuario').value.trim();
             let s = document.getElementById('login-senha').value.trim();
@@ -525,7 +565,6 @@
                 usuarioLogado = conta;
                 alert('Acesso concedido. Bem-vindo, ' + conta.user);
                 
-                // Exibe a aba de Administração apenas se for Admin
                 if(conta.tipo === 'admin') {
                     document.getElementById('aba-btn-admin').style.display = 'inline-block';
                 } else {
@@ -561,7 +600,7 @@
             document.getElementById('nova-senha').value = '';
         }
 
-        // --- 6. PERSISTÊNCIA DOS FORMULÁRIOS ---
+        // --- 7. PERSISTÊNCIA DOS FORMULÁRIOS ---
         function salvarManutencaoDiaria() {
             let numMotor = document.getElementById('m-num-motor').value;
 
@@ -659,7 +698,7 @@
             document.getElementById('t-peca').value = '';
         }
 
-        // --- 7. RELATÓRIOS E PROCESSO DE VIDA ÚTIL ---
+        // --- 8. RELATÓRIOS E PROCESSO DE VIDA ÚTIL ---
         function calcularVidaUtilDiscos() {
             let container = document.getElementById('container-vida-util');
             if(!container) return;
